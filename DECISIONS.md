@@ -416,6 +416,28 @@
 
 ---
 
+## ADR-025 · 不发布 npm，改走 GitHub + awesome-dsh-plugin 市场目录
+
+**状态**：已决定（第 15 轮） · **日期**：2026-10-18
+
+- **决定**：
+  - 不执行 `npm publish`；把 `package.json` 的 `publishConfig` 移除；
+  - 发布只走 GitHub 公开仓库 + `awesome-dsh-plugin` 目录条目；
+  - 用户安装路径是 **DSH → 设置 → 插件市场 → 搜 Move45clock**；
+  - `publish/dsh-move45clock-1.4.0.tgz` 只作 GitHub Release 附件（可选）。
+- **为什么**：npm 会把账号邮箱写进包的 `maintainers` 公开元数据；用户明确表示
+  不愿公开邮箱。`package.json` 的 `author` 不写 email 也挡不住这一条。
+  GitHub 可以开启 “Keep my email addresses private”、用 noreply 提交，暴露面更小；
+  市场本身支持 GitHub 源码安装，npm 不是必需的。
+- **还考虑过**：
+  - 用项目专用邮箱别名发 npm（可行，但仍会公开一个邮箱；用户不想公开任何邮箱）；
+  - 临时邮箱（不利于账号找回/2FA，否决）；
+  - 只发 GitHub、不进市场（用户希望被市场搜到，否决）。
+- **代价**：没有 npm 下载量统计；安装走 GitHub 源码/Release，首次安装可能比 npm 慢；
+  市场目录要求仓库创建满 1 天，不能当天上架。
+
+---
+
 ## 待定 / 以后可能要改判的点
 
 | 编号 | 待定事项 | 触发条件 |

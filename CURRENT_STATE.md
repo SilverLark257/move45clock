@@ -1,7 +1,20 @@
 # 健康钟 · 当前状态
 
-> 更新时间：2026-10-18（第 14 轮：公共发布准备 / npm 改名 / 用户版 README，v1.4.0）
-> 一句话：**v1.4.0 功能完成，包名改为 dsh-move45clock；用户版 README 已写好，npm 包已打包；只差登录 npm 后发布。**
+> 更新时间：2026-10-18（第 15 轮：发布方案 B：GitHub 市场，不发 npm，v1.4.0）
+> 一句话：**v1.4.0 功能完成，插件改名 dsh-move45clock；不发 npm，改走 GitHub + DSH 插件市场。**
+
+---
+
+## 第 15 轮：发布方案 B（不发 npm）
+
+- **原因**：npm 会把账号邮箱写进包的公开元数据；用户不希望公开邮箱。
+- **决定**：只发 GitHub + `awesome-dsh-plugin` 市场目录；npm 发布**取消**。
+- **README**：安装说明改为“插件市场搜 Move45clock”，删掉 npm 命令；不再引导用户装 npm。
+- **package.json**：移除 `publishConfig`，避免误发 npm；包名保持 `dsh-move45clock`。
+- **本地**：插件已用新名安装，设置 / 计划 / 夜间记录都没动。
+- **发布包**：`dsh-move45clock-1.4.0.tgz` 只作 GitHub Release 附件（可选）。
+- **下一步**：用户建 GitHub Public 仓库并推送；仓库满 1 天后，
+  向 `awesome-dsh-plugin` 提交 `data/plugins/<owner>__<repo>.yml`。
 
 ---
 
@@ -80,7 +93,9 @@
 | 夜间提醒（21:30 / 22:00 / 22:30） | ✅ 已实现，待重启 DSH 真机验收 |
 | 夜间提醒去重（night.json） | ✅ 已实现，`test-night` / `test-host` 覆盖 |
 | 语音播报（只报动作名） | ✅ 已实现并经用户试听，待最终验收 |
-| npm 包（dsh-move45clock@1.4.0） | ✅ 已打包 / dry-run 通过；⬜ 待登录 npm 后发布 |
+| npm 包（dsh-move45clock@1.4.0） | ❌ 已取消（邮箱隐私；不发 npm） |
+| GitHub 仓库 | ⬜ 待用户创建并推送（沙箱访问不了 GitHub） |
+| 市场目录条目 | ⬜ 仓库满 1 天后提交 |
 | 包名迁移（旧 dsh-clock → 新名） | ✅ 已卸载旧 profile 项并重装新名 |
 | 宿主 / 客户端测试 | ✅ 全部通过 |
 | **重启 DSH 验收 v1.4.0** | ⬜ 宿主和客户端都改了，**必须完全重启** |
@@ -273,19 +288,22 @@ npm test
 
 ---
 
-## 给下一位接手的 Agent（2026-10-18，第 14 轮）
+## 给下一位接手的 Agent（2026-10-18，第 15 轮）
 
 - **v1.4.0 已合并 `main`**：计划编辑器 + 弹窗放大 + 夜间提醒 + 语音播报；
-  公开包名已改为 **`dsh-move45clock`**（npm 不允许大写；旧 `dsh-clock` 被占用）。
+  公开包名 **`dsh-move45clock`**（展示名 Move45clock）。
+- **发布方案 B**：**不发 npm**（npm 账号邮箱会进公开元数据）；只发 GitHub +
+  `awesome-dsh-plugin` 市场目录。README 安装说明只写“插件市场搜 Move45clock”。
 - 安装已迁移：旧名 `dsh-clock` 从 profile 卸载，新名 `dsh-move45clock` 已安装；
   存储目录仍是 `~/.dsh/storages/dsh-clock`，数据没动。
 - README 已拆：`README.md` 用户版（亲切、无真实信息）；`DEVELOPMENT.md` 开发版。
-- npm：`npm pack` + `npm publish --dry-run` 通过；**本机未登录 npm，尚未真正 publish**。
-  登录命令：`npm login --registry=https://registry.npmjs.org`；
-  之后 `npm publish --registry=https://registry.npmjs.org`。
+- **npm 不发布**；`publishConfig` 已移除。`publish/dsh-move45clock-1.4.0.tgz`
+  只作 GitHub Release 附件（可选）。
 - GitHub：沙箱访问不了 GitHub（git/SSL），建仓/推送需用户操作；仓库需 Public、
   满 1 天、有 `dsh.bundle`、加 `dsh-plugin` topic；市场目录
   `awesome-dsh-plugin/awesome-dsh-plugin`，条目 `data/plugins/<owner>__<repo>.yml`。
+- GitHub 邮箱隐私：建议用户在 GitHub 设置里勾选 “Keep my email addresses private”，
+  用 noreply 提交；本机 git 邮箱本来就是 GitHub noreply 形式。
 - 入口：设置页在 **设置 → 健康钟**；计划编辑器、夜间开关/预览在同一页；
   语音在休息卡片准备页，不是设置项。
 - 存储：
@@ -295,5 +313,5 @@ npm test
 - 路由 9 条 exact 路由；`/plans` GET/POST；`/night` POST（dismiss/preview）。
 - 测试 `npm test` 当前全绿（计划、状态机、夜间、宿主接线）；语音靠真机试听。
 - 唤醒日志：`%TEMP%\dsh-clock-wake.log`。
-- 下一轮候选：npm 发布、GitHub 仓库 + 市场目录、统计、系统通知/置顶、语音音量/语速。
+- 下一轮候选：GitHub 仓库 + 市场目录、统计、系统通知/置顶、语音音量/语速。
 - 用户不懂编程：用大白话，先"我做了什么"，再"打个比方"；改计划/动业务前先确认。

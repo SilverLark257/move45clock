@@ -565,6 +565,45 @@
 - 建 GitHub 仓库并推 `main` + `v1.4.0`；
 - 准备好目录条目，明天提 PR。
 
+## 2026-10-18 · 第 15 轮：发布方案 B —— 不发 npm，改走 GitHub 市场（v1.4.0）
+
+### 你的决定
+
+- 看到 npm 注册页提示“邮箱会加进包的公开元数据”，你不想公开邮箱；
+- 选择 **方案 B**：不发 npm，只发 GitHub + DSH 插件市场。
+
+### 做了什么
+
+1. **取消 npm 发布**：
+   - `package.json` 移除 `publishConfig`，避免误发；
+   - 不再需要 npm 登录；`dsh-move45clock@1.4.0` 的 npm dry-run 只作为历史记录，没有真正 publish。
+2. **README 安装说明改写**：
+   - 只保留“DSH → 设置 → 插件市场 → 搜 Move45clock → 安装”；
+   - 删掉 `dsh plugin ... add dsh-move45clock` 的 npm 命令；
+   - 加一句“插件市场会直接从 GitHub 安装，不需要 npm”。
+3. **发布路线**：
+   - GitHub 公开仓库 + `awesome-dsh-plugin` 目录条目；
+   - 仓库需 Public、创建满 1 天、`dsh.bundle`、`dsh-plugin` topic；
+   - 市场条目 `data/plugins/<owner>__<repo>.yml`，CI 通过后隔天可搜。
+4. **邮箱隐私**：
+   - 建议 GitHub 设置里开启 “Keep my email addresses private” 并使用 noreply；
+   - 本机 git 邮箱本来就是 GitHub noreply 形式；
+   - 用户版 README/LICENSE/package 里没有真实姓名、邮箱、地址、本机路径。
+5. **发布包**：`publish/dsh-move45clock-1.4.0.tgz` 仅作 GitHub Release 附件（可选）。
+
+### 发现 / 踩坑
+
+- npm 的账号邮箱会进包的 `maintainers` 公开元数据，`package.json` 里不写 email 也挡不住；
+  所以“不发布 npm”是唯一能保证邮箱不进包元数据的方案。
+- 市场支持 GitHub 源码安装，npm 不是必需的；只是没有下载量统计。
+- 目录要求仓库满 1 天，今天建仓库、明天再提 PR。
+
+### 下次从哪继续
+
+- 用户建 GitHub Public 仓库、加 `dsh-plugin` topic、推送 `main` + `v1.4.0`；
+- 仓库满 1 天后，向 `awesome-dsh-plugin` 提目录 PR；
+- 市场审核通过后，搜 Move45clock 安装。
+
 ---
 
 <!--

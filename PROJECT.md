@@ -258,19 +258,19 @@
 
 ---
 
-## 发布准备（2026-10-18，v1.4.0）
+## 发布准备（2026-10-18，v1.4.0，方案 B）
 
-- **npm 包名**：`dsh-move45clock`（npm 不允许大写；`dsh-clock` 已被“省钱时钟”占用）；
+- **不发 npm**：npm 账号邮箱会进包的公开元数据，用户不愿公开；改为 GitHub + 市场目录。
+- **包名**：`dsh-move45clock`（展示名 Move45clock）；`publishConfig` 已移除。
 - **用户版 README**：`README.md`（亲切/可爱/新手口吻，不放真实姓名、邮箱、地址、本机路径）；
-  开发文档移到 `DEVELOPMENT.md`；
-- **匿名化**：LICENSE 为 “The Move45clock authors”，package 作者为 “A first-time vibecoder”；
+  开发文档移到 `DEVELOPMENT.md`。
+- **匿名化**：LICENSE 为 “The Move45clock authors”，package 作者为 “A first-time vibecoder”。
 - **安装迁移**：旧名 `dsh-clock` 已从 profile 卸载，新名 `dsh-move45clock` 已安装；
-  设置、计划、夜间记录仍在原存储目录；
-- **npm**：`npm pack` + `npm publish --dry-run` 通过（16 个文件，约 59 KB）；
-  **只差登录 npm 后真正 publish**；
-- **GitHub**：沙箱访问不了 GitHub，需要用户建公开仓库并推送；市场目录要求仓库满 1 天、
-  有 `dsh.bundle`、加 `dsh-plugin` topic，再向 `awesome-dsh-plugin` 提条目 PR；
-- **下一步**：用户 `npm login` → 发布 npm → 建 GitHub 仓库 → 满 1 天后提市场目录 PR。
+  设置、计划、夜间记录仍在原存储目录。
+- **发布包**：`dsh-move45clock-1.4.0.tgz` 仅作 GitHub Release 附件（可选）。
+- **GitHub**：沙箱访问不了 GitHub，需要用户建 Public 仓库、加 `dsh-plugin` topic 并推送；
+  仓库满 1 天后，向 `awesome-dsh-plugin` 提 `data/plugins/<owner>__<repo>.yml`。
+- **下一步**：建 GitHub 仓库并推送 → 满 1 天 → 提市场目录 PR → 市场搜 Move45clock。
 
 ---
 

@@ -2,7 +2,8 @@
 
 > 这是给维护者看的开发 / 安装 / 排错文档；普通用户请读 [README.md](README.md)。
 >
-> 公开包名：`dsh-move45clock`；项目文件夹仍叫 `dsh-clock`；
+> 插件包名：`dsh-move45clock`（不发 npm；通过 GitHub / DSH 插件市场安装）；
+> 项目文件夹仍叫 `dsh-clock`；
 > 存储目录 `~/.dsh/storages/dsh-clock` 保持不变（为了不丢设置、计划和夜间记录）。
 
 > 🐣 一个会催你"起来动一动"的 DSH 小插件。
