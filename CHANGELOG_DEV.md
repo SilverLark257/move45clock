@@ -639,6 +639,36 @@
 - 用户完全重启 DSH 验证；若仍失败，回退 `safe-before-voice`；
 - 验证通过后，建 GitHub 仓库 `move45clock`、推送、满 1 天提市场目录。
 
+## 2026-10-18 · 第 17 轮：GitHub 推送完成 + 交接检查（v1.4.0）
+
+### 完成
+
+1. 用户 GitHub 仓库 **`SilverLark257/move45clock`** 已推 `main`（`af943d4`）；
+   仓库页面能正常看到 README / 代码。
+2. 通过 jsDelivr 核对 GitHub `main` 的 `package.json`：
+   `name = dsh-clock`、`version = 1.4.0`、作者匿名——确认推的是修复后的版本，
+   不是 `dsh-move45clock` 的坏提交。
+3. 本地插件 live：`state.ok=true`、`phase=work`、`workSeconds=2400`（工作 40 分钟）、
+   12 套计划、`cardScale=1.2`、`nightEnabled=true`；`night.json` 已记录 21:30。
+4. `npm test` 4 项全绿；`node tools/install.js --status` 已安装启用；git 工作区干净；
+   tag `v1.4.0` 在 `af943d4`。
+5. 新增 `NEXT_ROUND.md`（下一轮开工指令），更新 CURRENT_STATE / PROJECT。
+
+### 还没做 / 需要用户在 GitHub 网页补
+
+- 仓库 **About → Topics** 加 `dsh-plugin`（市场 CI 必需）；
+- **Releases** 建 `v1.4.0` tag（GitHub Desktop 推分支不带 tag；可选 attach
+  `publish/move45clock-1.4.0.tgz`）；
+- 仓库满 1 天（10-19 21:20 后）向 `awesome-dsh-plugin` 提
+  `data/plugins/SilverLark257__move45clock.yml`；
+- 本地可能比 GitHub 多一个“工作日志 / 开工指令”提交，下次按需 push。
+
+### 备注
+
+- 沙箱访问 GitHub API / raw 不稳定；jsDelivr 可用时以它核对 `package.json`。
+- 不发 npm；邮箱不会进 npm 元数据。
+- 内部包名固定 `dsh-clock`（ADR-026）；公开名 Move45clock。
+
 ---
 
 <!--

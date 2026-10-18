@@ -270,9 +270,11 @@
 - **安装迁移**：已回退；profile 从改名前的备份恢复（含主题 / 市场 / 计费），
   重新建立 `dsh-clock` 联接；设置、计划、夜间记录仍在原存储目录。
 - **发布包**：`move45clock-1.4.0.tgz` 仅作 GitHub Release 附件（可选）。
-- **GitHub**：沙箱访问不了 GitHub，需要用户建 Public 仓库、加 `dsh-plugin` topic 并推送；
-  仓库满 1 天后，向 `awesome-dsh-plugin` 提 `data/plugins/<owner>__<repo>.yml`。
-- **下一步**：用户完全重启 DSH 验证 → 建 GitHub 仓库并推送 → 满 1 天 → 提市场目录 PR。
+- **GitHub**：`SilverLark257/move45clock` 已推 `main`（`af943d4`）；
+  待用户补 `dsh-plugin` topic 和 `v1.4.0` Release；
+  仓库满 1 天后（10-19 21:20 后），向 `awesome-dsh-plugin` 提
+  `data/plugins/SilverLark257__move45clock.yml`。
+- **下一步**：补 topic/tag → 满 1 天提目录 PR → 市场搜 Move45clock。
 
 ---
 
