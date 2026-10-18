@@ -6,6 +6,15 @@ param(
 # ASCII-only on purpose: works under Windows PowerShell 5.1 and 7 without a BOM.
 $ErrorActionPreference = 'Stop'
 
+# Small append-only diagnostic log. Harmless in production and invaluable when
+# the window does not come back: it records every branch this script took.
+$WAKE_LOG = Join-Path $env:TEMP 'dsh-clock-wake.log'
+function Write-WakeLog([string]$message) {
+    try {
+        Add-Content -LiteralPath $WAKE_LOG -Value ((Get-Date -Format 'HH:mm:ss.fff') + ' ' + $message) -Encoding Ascii
+    } catch { }
+}
+
 Add-Type -TypeDefinition @'
 using System;
 using System.Text;
@@ -111,31 +120,142 @@ if (-not $target) {
 $hwnd = $target.Handle
 $wasVisible = [DshClockWin32]::IsWindowVisible($hwnd)
 $wasIconic = [DshClockWin32]::IsIconic($hwnd)
+Write-WakeLog "start hwnd=$hwnd pid=$($target.Pid) wasVisible=$wasVisible wasIconic=$wasIconic"
 
-# Hidden-to-tray windows are not "minimized": show them explicitly first.
-if (-not $wasVisible) {
-    [void][DshClockWin32]::ShowWindow($hwnd, 5)   # SW_SHOW
-    Start-Sleep -Milliseconds 40
+function Find-DshTrayButton {
+    param($scope)
+
+    $items = $scope.FindAll(
+        [System.Windows.Automation.TreeScope]::Descendants,
+        [System.Windows.Automation.Condition]::TrueCondition
+    )
+    foreach ($item in $items) {
+        if ($item.Current.ClassName -eq 'SystemTray.NormalButton' -and $item.Current.Name -match 'DeepSeek') {
+            return $item
+        }
+    }
+    return $null
 }
 
-# Restore/show the window (SW_RESTORE = 9 also un-minimizes).
-[void][DshClockWin32]::ShowWindow($hwnd, 9)
-Start-Sleep -Milliseconds 60
+<#
+    Invoke the DSH tray icon exactly like the user does.
 
-# Critical for "closed with X":
-# Win32 ShowWindow makes the HWND visible, but Electron still believes the
-# window is hidden, so the page is not repainted (the colourful card stays
-# invisible). Starting a second instance hits the app's single-instance
-# handler, which calls window.show()/focus() - exactly what a tray click does.
-# Only needed when the window was hidden or minimized.
+    Why this is the only reliable path:
+    the app's X button calls window.hide(); Win32 ShowWindow makes the HWND
+    visible but Electron still thinks the page is hidden, so Chromium never
+    repaints (the user sees the old frame and an invisible click blocker).
+    A tray click runs focusPrimaryWindow() INSIDE Electron: restore + show +
+    focus, which marks the page visible and repaints it.
+
+    Returns $true when the icon was found and invoked.
+#>
+function Invoke-DshTrayIcon {
+    try {
+        Add-Type -AssemblyName UIAutomationClient -ErrorAction Stop
+        Add-Type -AssemblyName UIAutomationTypes -ErrorAction Stop
+
+        $root = [System.Windows.Automation.AutomationElement]::RootElement
+        $tray = $root.FindFirst(
+            [System.Windows.Automation.TreeScope]::Children,
+            (New-Object System.Windows.Automation.PropertyCondition(
+                [System.Windows.Automation.AutomationElement]::ClassNameProperty,
+                'Shell_TrayWnd'
+            ))
+        )
+        if ($null -eq $tray) {
+            Write-WakeLog 'tray: Shell_TrayWnd not found'
+            return $false
+        }
+
+        $targetButton = Find-DshTrayButton -scope $tray
+        if ($null -eq $targetButton) {
+            # The icon lives in the overflow: click the chevron first. The
+            # chevron is the leftmost SystemTray.NormalButton of the tray group.
+            $items = $tray.FindAll(
+                [System.Windows.Automation.TreeScope]::Descendants,
+                [System.Windows.Automation.Condition]::TrueCondition
+            )
+            $opener = $null
+            $minX = [double]::MaxValue
+            foreach ($item in $items) {
+                if ($item.Current.ClassName -ne 'SystemTray.NormalButton') { continue }
+                $rect = $item.Current.BoundingRectangle
+                if ($rect.Width -le 0) { continue }
+                if ($rect.X -lt $minX) {
+                    $minX = $rect.X
+                    $opener = $item
+                }
+            }
+            if ($null -eq $opener) {
+                Write-WakeLog 'tray: overflow opener not found'
+                return $false
+            }
+
+            $opener.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+            Start-Sleep -Milliseconds 600
+
+            $windows = $root.FindAll(
+                [System.Windows.Automation.TreeScope]::Children,
+                [System.Windows.Automation.Condition]::TrueCondition
+            )
+            foreach ($window in $windows) {
+                if ($window.Current.ClassName -match 'Overflow|NotifyIcon') {
+                    $targetButton = Find-DshTrayButton -scope $window
+                    if ($null -ne $targetButton) { break }
+                }
+            }
+
+            if ($null -eq $targetButton) {
+                Write-WakeLog 'tray: DSH icon not found in overflow'
+                # Close the panel again so we do not leave it hanging open.
+                try { $opener.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke() } catch { }
+                return $false
+            }
+        }
+
+        $targetButton.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern).Invoke()
+        Write-WakeLog 'tray: invoked DSH icon'
+        return $true
+    } catch {
+        Write-WakeLog "tray: UIA failed: $($_.Exception.Message)"
+        return $false
+    }
+}
+
+$shownByTray = $false
 if (-not $wasVisible -or $wasIconic) {
+    $shownByTray = Invoke-DshTrayIcon
+    if ($shownByTray) {
+        # Electron needs a moment to show and focus the window.
+        for ($i = 0; $i -lt 10; $i++) {
+            Start-Sleep -Milliseconds 200
+            if ([DshClockWin32]::IsWindowVisible($hwnd) -and -not [DshClockWin32]::IsIconic($hwnd)) { break }
+        }
+    }
+}
+Write-WakeLog "after tray: visible=$([DshClockWin32]::IsWindowVisible($hwnd)) iconic=$([DshClockWin32]::IsIconic($hwnd)) trayUsed=$shownByTray"
+
+if (-not [DshClockWin32]::IsWindowVisible($hwnd) -or [DshClockWin32]::IsIconic($hwnd)) {
+    # Fallback: Win32 restore/show, then a second instance (best effort).
+    if (-not [DshClockWin32]::IsWindowVisible($hwnd)) {
+        [void][DshClockWin32]::ShowWindow($hwnd, 5)   # SW_SHOW
+        Start-Sleep -Milliseconds 40
+    }
+    [void][DshClockWin32]::ShowWindow($hwnd, 9)       # SW_RESTORE
+    Start-Sleep -Milliseconds 60
+    Write-WakeLog "after ShowWindow visible=$([DshClockWin32]::IsWindowVisible($hwnd)) iconic=$([DshClockWin32]::IsIconic($hwnd))"
+
     try {
         $exe = (Get-Process -Id $target.Pid -ErrorAction SilentlyContinue).Path
         if ($exe) {
+            Write-WakeLog "launching second instance: $exe"
             Start-Process -FilePath $exe -WindowStyle Hidden | Out-Null
             Start-Sleep -Milliseconds 300
+            Write-WakeLog 'second instance returned'
         }
-    } catch { }
+    } catch {
+        Write-WakeLog "second instance failed: $($_.Exception.Message)"
+    }
 }
 
 # A plain system "ding" is the last-resort fallback: it is audible even when
@@ -167,7 +287,9 @@ $result = [pscustomobject]@{
     pid       = $target.Pid
     visible   = $target.Visible
     iconic    = $target.Iconic
+    tray      = $shownByTray
     focused   = $focused
 }
+Write-WakeLog "done focused=$focused visibleNow=$([DshClockWin32]::IsWindowVisible($hwnd)) iconicNow=$([DshClockWin32]::IsIconic($hwnd))"
 $result | ConvertTo-Json -Compress
 exit 0

@@ -98,8 +98,8 @@ node tools/install.js --uninstall
    - `健康钟 · 离线` → 宿主还没重启 / 路由没起来，**完全退出 DSH 再打开**；
    - `健康钟 · 连接中` → 等几秒；一直这样也是没重启。
 2. 已经重启还是没弹：把 `~\.dsh\profiles\desktop\package.json` 里
-   `dsh.profile.bundles` 是否包含 `dsh-clock`、以及 `node tools/install.js --status`
-   的输出发我。
+   `dsh.profile.bundles` 是否包含 `dsh-clock`、`node tools/install.js --status` 的输出，
+   以及 `%TEMP%\dsh-clock-wake.log` 一起发我（脚本每一步都记了日志）。
 
 ---
 
@@ -132,7 +132,8 @@ node tools/install.js --uninstall
 - **宿主半边 = 值班室**：盯着表，到点先"拍醒" DSH 窗口，再把状态改成"该休息了"；
 - **浏览器半边 = 显示屏**：每 2 秒问一次值班室"现在什么状态"，把卡片和倒计时画出来；
 - **PowerShell 脚本 = 跑腿的**：去 Windows 那里把 DSH 窗口从托盘里拽出来、放最前面、
-  闪任务栏、响一声。
+  闪任务栏、响一声。如果窗口是点 × 藏进托盘的，它还会**模拟你点一下托盘图标**——
+  和手动双击托盘是同一条路（Electron 自己的 `window.show()`），网页才会真正重绘。
 
 窗口隐藏时，显示屏可以打瞌睡，但值班室不会——这就是这次修好"托盘里不弹窗"的关键。
 

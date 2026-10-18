@@ -263,10 +263,14 @@
 - **决定**：`tools/wake-window.ps1` 用 `EnumWindows` 找到 DSH 主窗口，依次
   `ShowWindow(SW_SHOW / SW_RESTORE)`、`SetForegroundWindow`（失败时才模拟 Alt 再试一次）、
   `FlashWindowEx`、`SystemSounds.Exclamation`。
-- **第 5 轮补充**：Win32 `ShowWindow` 只能让窗口壳子可见；当 Electron 认为窗口是 `hide()`
-  状态时，网页不会重绘（彩色卡片画不出来）。所以窗口原来是隐藏/最小化时，再**启动一次 DSH**：
-  第二个实例命中单实例锁后立刻退出，但会触发 `second-instance` → `focusPrimaryWindow()` →
-  `window.show()/focus()`——和双击托盘图标同一条路。这样 × 关闭后的窗口也能真正重绘。
+- **第 5 轮尝试（真机无效）**：Win32 `ShowWindow` 只能让窗口壳子可见；当 Electron 认为窗口
+  是 `hide()` 状态时，网页不会重绘。当时尝试再启动一次 DSH 触发 `second-instance`，但真机
+  测试 `Visible` 仍为 false，没成功。
+- **第 6 轮最终方案**：用 **UI Automation 模拟点击 DSH 托盘图标**——它走的就是用户手动双击
+  托盘的同一条 `focusPrimaryWindow()` → `window.show()/focus()`，页面会真正重绘。
+  图标在"隐藏的图标"里时先点开面板；找不到图标时回退 Win32 + 第二实例。
+- **代价**：依赖任务栏和托盘图标存在；每次会短暂打开"隐藏的图标"面板；UIA 在 PowerShell
+  5.1 下可用，但 Windows 版本差异需要兜底（找不到就回退）。
 - **为什么**：Electron 主进程的窗口控制能力插件拿不到；宿主是普通 Node 进程，只能走 Win32。
   脚本已单独实测：能把最小化的 DSH 窗口恢复并聚焦（`focused: true`）。
 - **还考虑过**：
