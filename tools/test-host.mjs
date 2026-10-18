@@ -73,8 +73,8 @@ if (result.status !== 200) console.error('state failed:', result);
 assert.equal(result.status, 200);
 assert.equal(result.json.ok, true);
 assert.equal(result.json.state.phase, 'work');
-assert.equal(result.json.state.devMode, true);
-assert.equal(result.json.state.workSeconds, 120);
+assert.equal(result.json.state.devMode, false);
+assert.equal(result.json.state.workSeconds, 2700);
 assert.equal(typeof result.json.state.deadline, 'number');
 
 // GET /plans
