@@ -122,6 +122,54 @@
 
 ---
 
+## 2026-10-18 · 第 4 轮：定位「托盘不弹窗」并改架构
+
+### 你反馈的
+
+- 重启后把 DSH 最小化到托盘，到点**完全没有弹窗**；希望只要 DSH 没关闭，不管在玩什么都弹；
+- 左下角要能点开看详情，并预留以后加小功能的入口。
+
+### 根因
+
+- 计时原来在浏览器：窗口隐藏后定时器被 Chromium 节流，到点不一定执行；
+- 弹窗画在**隐藏的 DSH 窗口**里：窗口不出现，卡片画得再好也看不见。
+
+### 做了什么
+
+1. 新增 `lib/clock-core.js`：纯计时状态机（工作 → 休息 → 完成 → 下一轮，可注入时间源）。
+2. 重写 `lib/index.js`：计时搬到宿主；7 条 HTTP exact 路由（`/state` `/plans` `/rest`
+   `/skip` `/next` `/reset` `/wake`）；到点调用唤醒脚本。
+3. 新增 `tools/wake-window.ps1`：`EnumWindows` 找 DSH 窗口 →
+   `ShowWindow` / `SetForegroundWindow`（Alt 绕过前台限制）/ `FlashWindowEx` / 系统提示音。
+   纯 ASCII，PowerShell 5.1 和 7 都能跑。
+4. 重写 `lib/client.js`：改成每 2 秒轮询 `/state`；保留卡片、提示音、标题闪烁；
+   左下角入口改为可点开的详情面板（状态 / 剩余 / 下次提醒 / 今日完成 / 计划 + 动作按钮
+   + 「统计 / 自定义计划 / 提示音」预留入口）。
+5. 新增测试：`tools/test-clock.mjs`（状态机）、`tools/test-host.mjs`（7 条路由接线）。
+6. `package.json` 升到 0.2.0，`files` 加入 `tools`，新增 `test:clock` 脚本。
+7. 文档同步：README / CURRENT_STATE / DECISIONS（ADR-003 改判，新增 ADR-015～018）/ PROJECT。
+
+### 实测
+
+- 唤醒脚本对**最小化**的 DSH 窗口执行，返回 `focused: true`——窗口被恢复并置前；
+- `node --check`：`lib/client.js`、`lib/index.js`、`lib/clock-core.js`、两个测试文件全部通过；
+- `node tools/test-clock.mjs`、`node tools/test-host.mjs`：全部断言通过。
+
+### 还没验证（必须重启 DSH）
+
+- 宿主进程里真实加载（计时、路由注册、`execFile` 调 PowerShell）；
+- 浏览器轮询 / 卡片 / 详情面板的真机表现；
+- 托盘**隐藏**（不是最小化）时 `ShowWindow` 是否有效；
+- 独占全屏游戏里 `SetForegroundWindow` 是否被 Windows 拒绝。
+
+### 下次从哪继续
+
+1. 完全重启 DSH，按 `CURRENT_STATE.md` 的 7 步验收（重点：最小化后窗口会不会自己弹出）；
+2. 通过后 `DEV_MODE = false`（45 分钟），提交 Git；
+3. 视情况加系统通知 / 置顶小窗、i18n、设置项。
+
+---
+
 <!--
 以后每轮照这个格式追加：
 
