@@ -1,0 +1,50 @@
+{
+  "name": "dsh-clock",
+  "version": "0.1.0",
+  "description": "DSH 健康钟插件：每工作 45 分钟弹出卡通休息卡片，随机派一个休息计划（锻炼任务 + 10~15 分钟倒计时），软锁定休息，结束后循环。",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "health",
+    "break",
+    "timer",
+    "pomodoro",
+    "健康钟",
+    "休息"
+  ],
+  "type": "module",
+  "main": "lib/index.js",
+  "scripts": {
+    "install:plugin": "node tools/install.js",
+    "status": "node tools/install.js --status",
+    "uninstall:plugin": "node tools/install.js --uninstall"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    },
+    "compatibility": {
+      "dshReleases": {
+        "0.2.0-rc.2": "compatible",
+        "0.2.1-rc.2": "compatible"
+      }
+    }
+  },
+  "license": "MIT"
+}

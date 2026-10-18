@@ -1,0 +1,16 @@
+# 依赖与安装产物
+node_modules/
+
+# 打包产物（如以后做 zip 分发）
+dist/
+
+# 日志
+*.log
+
+# 系统垃圾
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.idea/
+.vscode/

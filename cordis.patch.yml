@@ -1,0 +1,12 @@
+# DSH 健康钟插件 —— bundle patch
+# ------------------------------------
+# profile 的 package.json 里 dsh.profile.bundles 列出本包名后，
+# 这一行把插件插入到该 profile 的层叠配置里。
+#   insert → 新增一个加载行
+#   id     → 行标识，取本包专属名，避免与其它插件冲突
+#   name   → 包名，Node 解析找到已安装的代码
+# 本包声明了 dsh.client（platform: web）后，
+# Web 端会额外把 ./client 作为浏览器半边加载。
+- insert:
+    - id: health-clock
+      name: 'dsh-clock'

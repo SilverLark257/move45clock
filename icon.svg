@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- 健康钟图标：一只抱着闹钟的小鸡 -->
+  <circle cx="32" cy="32" r="30" fill="#fff6e5"/>
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#ffd9a0" stroke-width="2"/>
+  <!-- 闹钟 -->
+  <circle cx="32" cy="36" r="16" fill="#ff9a4d" stroke="#d9601a" stroke-width="2.5"/>
+  <circle cx="32" cy="36" r="12" fill="#fff6e5"/>
+  <line x1="32" y1="36" x2="32" y2="28" stroke="#5b3a1a" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="32" y1="36" x2="38" y2="39" stroke="#5b3a1a" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- 铃铛 -->
+  <line x1="20" y1="22" x2="24" y2="26" stroke="#d9601a" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="44" y1="22" x2="40" y2="26" stroke="#d9601a" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- 小鸡冠子 -->
+  <path d="M28 14 q2 -5 4 0 q2 -5 4 0" fill="none" stroke="#f06a8a" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
