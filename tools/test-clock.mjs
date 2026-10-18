@@ -77,6 +77,13 @@ const plan = clock.startRestNow();
 assert.ok(plan);
 assert.equal(clock.snapshot().phase, 'rest');
 
+// 指定计划（设置页「试做这套」）
+clock.skipRest();
+clock.startNextRound();
+const chosen = clock.startRestNow('b');
+assert.equal(chosen.id, 'b');
+assert.equal(clock.snapshot().plan.id, 'b');
+
 // 显示用的字段
 assert.equal(typeof clock.snapshot().now, 'number');
 assert.equal(typeof clock.snapshot().deadline, 'number');
