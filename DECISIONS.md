@@ -438,6 +438,28 @@
 
 ---
 
+## ADR-026 · 内部包名固定 `dsh-clock`，公开品牌 Move45clock
+
+**状态**：已决定（第 16 轮） · **日期**：2026-10-18
+
+- **决定**：
+  - `package.json` 的 `name` 保持 `dsh-clock`；客户端模块 ID / slot ID 保持 `dsh-clock`；
+  - 公开仓库名 / 展示名用 **move45clock / Move45clock**；
+  - 不再尝试把内部包名改成 `dsh-move45clock`。
+- **为什么**：改名后 DSH 启动报
+  `duplicate factory registration for "dsh-clock"` / `dsh-move45clock: import failed`。
+  包名是 DSH 安装/加载的内部标识，和客户端模块 ID、profile 的安装记录绑在一起；
+  手动安装法（ADR-014）不会更新 lock / loader 状态，改名风险高。
+  公开品牌完全可以只改仓库名和 README，不需要动包名。
+- **还考虑过**：
+  - 改客户端 ID + 手工更新 profile lock（可行但脆弱，手动安装法没有完整工具链）；
+  - 改走官方 `plugin_manager install_bundle`（更正规，留作以后）；
+  - 回到官方 npm（已因邮箱隐私否决）。
+- **代价**：仓库名 `move45clock` 和包名 `dsh-clock` 不一致，文档里要说明；
+  npm 上 `dsh-clock` 已被别的插件占用，但本项目不发 npm，不影响 GitHub 安装。
+
+---
+
 ## 待定 / 以后可能要改判的点
 
 | 编号 | 待定事项 | 触发条件 |

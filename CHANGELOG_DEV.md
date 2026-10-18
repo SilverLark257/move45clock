@@ -604,6 +604,41 @@
 - 仓库满 1 天后，向 `awesome-dsh-plugin` 提目录 PR；
 - 市场审核通过后，搜 Move45clock 安装。
 
+## 2026-10-18 · 第 16 轮：启动失败修复 —— 内部包名回退 `dsh-clock`（v1.4.0）
+
+### 现象
+
+- 用户重启 DSH 报 `dsh-move45clock: import failed`；
+- 渲染器日志：`duplicate factory registration for "dsh-clock"`；
+- 用户点“禁用第三方插件”后才回到界面。
+
+### 根因
+
+- 包名改成 `dsh-move45clock`，但客户端模块 ID 仍是 `dsh-clock`；
+  旧/新两边注册同一个 ID，触发 duplicate factory；
+- 手动安装法（ADR-014）只建 junction，不更新 profile 的 lock / 加载状态；
+  改名后的新条目没有可靠接上。
+
+### 修复
+
+1. 内部包名回退 `dsh-clock`（`package.json` / `lib/index.js` / `cordis.patch.yml`）；
+2. 从 21:00 的 profile 备份恢复完整 `package.json`
+   （含 `dsh-clock` 和主题 / 市场 / 计费）；
+3. 重新建立 `node_modules/dsh-clock` 联接；
+4. profile 内 `import('dsh-clock')` 测试通过（`OLD_IMPORT_OK`）；
+5. 用户设置 / 计划 / 夜间记录都没动；其他第三方插件也一起恢复。
+
+### 教训
+
+- **不要为了公开品牌改内部包名**；公开品牌改仓库名 / README 即可。
+- 手动安装法改名前要评估 profile / loader / lock；必要时走官方 `plugin_manager`。
+- 安全 tag `safe-before-voice`（v1.3.1）保留，必要时回退。
+
+### 下次从哪继续
+
+- 用户完全重启 DSH 验证；若仍失败，回退 `safe-before-voice`；
+- 验证通过后，建 GitHub 仓库 `move45clock`、推送、满 1 天提市场目录。
+
 ---
 
 <!--

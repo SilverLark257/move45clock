@@ -261,16 +261,18 @@
 ## 发布准备（2026-10-18，v1.4.0，方案 B）
 
 - **不发 npm**：npm 账号邮箱会进包的公开元数据，用户不愿公开；改为 GitHub + 市场目录。
-- **包名**：`dsh-move45clock`（展示名 Move45clock）；`publishConfig` 已移除。
+- **内部包名**：`dsh-clock`（安装名）；公开仓库 / 展示名 **move45clock / Move45clock**；
+  **不要再改内部包名**——手动安装法（ADR-014）改名会导致 DSH 启动时
+  `duplicate factory registration for "dsh-clock"` / `import failed`。
 - **用户版 README**：`README.md`（亲切/可爱/新手口吻，不放真实姓名、邮箱、地址、本机路径）；
   开发文档移到 `DEVELOPMENT.md`。
 - **匿名化**：LICENSE 为 “The Move45clock authors”，package 作者为 “A first-time vibecoder”。
-- **安装迁移**：旧名 `dsh-clock` 已从 profile 卸载，新名 `dsh-move45clock` 已安装；
-  设置、计划、夜间记录仍在原存储目录。
-- **发布包**：`dsh-move45clock-1.4.0.tgz` 仅作 GitHub Release 附件（可选）。
+- **安装迁移**：已回退；profile 从改名前的备份恢复（含主题 / 市场 / 计费），
+  重新建立 `dsh-clock` 联接；设置、计划、夜间记录仍在原存储目录。
+- **发布包**：`move45clock-1.4.0.tgz` 仅作 GitHub Release 附件（可选）。
 - **GitHub**：沙箱访问不了 GitHub，需要用户建 Public 仓库、加 `dsh-plugin` topic 并推送；
   仓库满 1 天后，向 `awesome-dsh-plugin` 提 `data/plugins/<owner>__<repo>.yml`。
-- **下一步**：建 GitHub 仓库并推送 → 满 1 天 → 提市场目录 PR → 市场搜 Move45clock。
+- **下一步**：用户完全重启 DSH 验证 → 建 GitHub 仓库并推送 → 满 1 天 → 提市场目录 PR。
 
 ---
 

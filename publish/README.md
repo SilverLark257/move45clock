@@ -9,10 +9,10 @@
 
 ## 现在的状态
 
-- 包名：`dsh-move45clock`（展示名 **Move45clock**）；
+- 内部包名：`dsh-clock`（安装名）；公开仓库 / 展示名：`move45clock` / **Move45clock**；
 - 用户版 `README.md` 已写好，安装说明只写“插件市场搜索 Move45clock”，不再教 npm 命令；
-- 本地插件已用新包名安装，设置 / 计划 / 夜间记录都没动；
-- 发布包 `publish/dsh-move45clock-1.4.0.tgz` 只是可选的 GitHub Release 附件；
+- 本地插件已回退到 `dsh-clock` 并恢复 profile（主题 / 市场 / 计费也一起回来）；
+- 发布包 `publish/move45clock-1.4.0.tgz` 只是可选的 GitHub Release 附件；
 - 这台机器的沙箱**访问不了 GitHub**，建仓库 / 推送 / 提 PR 需要你操作。
 
 ---
@@ -20,7 +20,7 @@
 ## 第 1 步：建 GitHub 仓库
 
 1. 打开 GitHub 的“新建仓库”页面；
-2. 名字建议 **`dsh-move45clock`**；
+2. 名字建议 **`move45clock`**（和你正在建的这个仓库一致；插件内部包名是 `dsh-clock`，不用改）；
 3. 选 **Public**；
 4. 不要勾 README / .gitignore / license（本地已有）；
 5. 创建后加 topic：**`dsh-plugin`**。
@@ -45,7 +45,7 @@ git push -u origin main --tags
 
 ## 第 3 步：建 Release（可选）
 
-tag 选 `v1.4.0`，附件上传 `publish/dsh-move45clock-1.4.0.tgz`。
+tag 选 `v1.4.0`，附件上传 `publish/move45clock-1.4.0.tgz`。
 
 > 有 Release 附件时，市场可以优先给预构建包；没有也能从 GitHub 源码安装。
 

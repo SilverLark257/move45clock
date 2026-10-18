@@ -1,7 +1,27 @@
 # 健康钟 · 当前状态
 
-> 更新时间：2026-10-18（第 15 轮：发布方案 B：GitHub 市场，不发 npm，v1.4.0）
-> 一句话：**v1.4.0 功能完成，插件改名 dsh-move45clock；不发 npm，改走 GitHub + DSH 插件市场。**
+> 更新时间：2026-10-18（第 16 轮：启动失败修复，内部包名回退 dsh-clock，公开名 Move45clock）
+> 一句话：**v1.4.0 功能都在；内部安装名回退为 dsh-clock，profile 已恢复到改名前的完整状态；对外仍是 Move45clock。**
+
+---
+
+## 第 16 轮：启动失败与回退（内部包名恢复 `dsh-clock`）
+
+- **现象**：把包名改成 `dsh-move45clock` 后重启 DSH，启动报
+  `dsh-move45clock: import failed`，渲染器日志还有
+  `duplicate factory registration for "dsh-clock"`；用户点“禁用第三方插件”才回到界面。
+- **原因**：包名改了，但客户端模块 ID 仍是 `dsh-clock`；旧/新两边都注册同一个
+  `dsh-clock`，触发 duplicate；同时手动安装法（ADR-014）只建 junction、不更新
+  profile 的锁/加载状态，改名后的条目没有可靠接上。
+- **修复**：
+  - 内部包名回退为 `dsh-clock`（`package.json` / `lib/index.js` / `cordis.patch.yml`）；
+  - 从 21:00 的 profile 备份恢复完整 `package.json`（含 `dsh-clock` 和主题 / 市场 / 计费）；
+  - 重新建立 `node_modules/dsh-clock` 联接；
+  - profile 内 `import('dsh-clock')` 测试通过（`OLD_IMPORT_OK`）；
+  - 用户设置 / 计划 / 夜间记录都没动。
+- **公开名不变**：仓库 / 展示名仍是 **Move45clock / move45clock**；不发 npm。
+- **待验证**：用户完全重启 DSH，确认不再报错；若仍失败，回退到安全 tag
+  `safe-before-voice`（v1.3.1）再装。
 
 ---
 
@@ -93,10 +113,11 @@
 | 夜间提醒（21:30 / 22:00 / 22:30） | ✅ 已实现，待重启 DSH 真机验收 |
 | 夜间提醒去重（night.json） | ✅ 已实现，`test-night` / `test-host` 覆盖 |
 | 语音播报（只报动作名） | ✅ 已实现并经用户试听，待最终验收 |
-| npm 包（dsh-move45clock@1.4.0） | ❌ 已取消（邮箱隐私；不发 npm） |
+| DSH 启动修复 | ✅ profile 已恢复、import 测试通过；⬜ 待用户重启验证 |
+| npm 包（原 dsh-move45clock） | ❌ 已取消（邮箱隐私；不发 npm） |
 | GitHub 仓库 | ⬜ 待用户创建并推送（沙箱访问不了 GitHub） |
 | 市场目录条目 | ⬜ 仓库满 1 天后提交 |
-| 包名迁移（旧 dsh-clock → 新名） | ✅ 已卸载旧 profile 项并重装新名 |
+| 内部包名 | ✅ 已回退 `dsh-clock`；公开仓库 `move45clock` |
 | 宿主 / 客户端测试 | ✅ 全部通过 |
 | **重启 DSH 验收 v1.4.0** | ⬜ 宿主和客户端都改了，**必须完全重启** |
 
@@ -288,16 +309,21 @@ npm test
 
 ---
 
-## 给下一位接手的 Agent（2026-10-18，第 15 轮）
+## 给下一位接手的 Agent（2026-10-18，第 16 轮）
 
 - **v1.4.0 已合并 `main`**：计划编辑器 + 弹窗放大 + 夜间提醒 + 语音播报；
-  公开包名 **`dsh-move45clock`**（展示名 Move45clock）。
+  **内部包名 `dsh-clock`**（公开仓库/展示名 **move45clock / Move45clock**）。
+- **启动失败的教训（重要）**：曾把内部包名改成 `dsh-move45clock`，DSH 启动报
+  `duplicate factory registration for "dsh-clock"` / `dsh-move45clock: import failed`。
+  原因：客户端模块 ID 仍是 `dsh-clock`，旧/新两边都注册；手动安装法（ADR-014）
+  不更新 lock/加载状态。已回退内部名 `dsh-clock` 并从 21:00 profile 备份恢复。
+  **不要再改内部包名**；公开品牌只改仓库名/README。
 - **发布方案 B**：**不发 npm**（npm 账号邮箱会进公开元数据）；只发 GitHub +
   `awesome-dsh-plugin` 市场目录。README 安装说明只写“插件市场搜 Move45clock”。
-- 安装已迁移：旧名 `dsh-clock` 从 profile 卸载，新名 `dsh-move45clock` 已安装；
-  存储目录仍是 `~/.dsh/storages/dsh-clock`，数据没动。
+- 安装：`dsh-clock` 已重新建 junction；profile 已恢复主题 / 市场 / 计费；
+  用户需完全重启 DSH 验证；若仍失败，回退安全 tag `safe-before-voice`（v1.3.1）。
 - README 已拆：`README.md` 用户版（亲切、无真实信息）；`DEVELOPMENT.md` 开发版。
-- **npm 不发布**；`publishConfig` 已移除。`publish/dsh-move45clock-1.4.0.tgz`
+- **npm 不发布**；`publishConfig` 已移除。`publish/move45clock-1.4.0.tgz`
   只作 GitHub Release 附件（可选）。
 - GitHub：沙箱访问不了 GitHub（git/SSL），建仓/推送需用户操作；仓库需 Public、
   满 1 天、有 `dsh.bundle`、加 `dsh-plugin` topic；市场目录
@@ -313,5 +339,5 @@ npm test
 - 路由 9 条 exact 路由；`/plans` GET/POST；`/night` POST（dismiss/preview）。
 - 测试 `npm test` 当前全绿（计划、状态机、夜间、宿主接线）；语音靠真机试听。
 - 唤醒日志：`%TEMP%\dsh-clock-wake.log`。
-- 下一轮候选：GitHub 仓库 + 市场目录、统计、系统通知/置顶、语音音量/语速。
+- 下一轮候选：重启验证、GitHub 仓库 + 市场目录、统计、系统通知/置顶、语音音量/语速。
 - 用户不懂编程：用大白话，先"我做了什么"，再"打个比方"；改计划/动业务前先确认。
