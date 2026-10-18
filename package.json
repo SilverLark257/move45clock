@@ -1,6 +1,6 @@
 {
   "name": "dsh-clock",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "DSH 健康钟插件：每工作 45 分钟弹出卡通休息卡片，随机派一个休息计划（锻炼任务 + 10~15 分钟倒计时），软锁定休息，结束后循环。",
   "keywords": [
     "deepseek-harness",
