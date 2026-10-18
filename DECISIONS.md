@@ -263,6 +263,10 @@
 - **决定**：`tools/wake-window.ps1` 用 `EnumWindows` 找到 DSH 主窗口，依次
   `ShowWindow(SW_SHOW / SW_RESTORE)`、`SetForegroundWindow`（失败时才模拟 Alt 再试一次）、
   `FlashWindowEx`、`SystemSounds.Exclamation`。
+- **第 5 轮补充**：Win32 `ShowWindow` 只能让窗口壳子可见；当 Electron 认为窗口是 `hide()`
+  状态时，网页不会重绘（彩色卡片画不出来）。所以窗口原来是隐藏/最小化时，再**启动一次 DSH**：
+  第二个实例命中单实例锁后立刻退出，但会触发 `second-instance` → `focusPrimaryWindow()` →
+  `window.show()/focus()`——和双击托盘图标同一条路。这样 × 关闭后的窗口也能真正重绘。
 - **为什么**：Electron 主进程的窗口控制能力插件拿不到；宿主是普通 Node 进程，只能走 Win32。
   脚本已单独实测：能把最小化的 DSH 窗口恢复并聚焦（`focused: true`）。
 - **还考虑过**：

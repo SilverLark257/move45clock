@@ -109,9 +109,11 @@ if (-not $target) {
 }
 
 $hwnd = $target.Handle
+$wasVisible = [DshClockWin32]::IsWindowVisible($hwnd)
+$wasIconic = [DshClockWin32]::IsIconic($hwnd)
 
 # Hidden-to-tray windows are not "minimized": show them explicitly first.
-if (-not [DshClockWin32]::IsWindowVisible($hwnd)) {
+if (-not $wasVisible) {
     [void][DshClockWin32]::ShowWindow($hwnd, 5)   # SW_SHOW
     Start-Sleep -Milliseconds 40
 }
@@ -119,6 +121,22 @@ if (-not [DshClockWin32]::IsWindowVisible($hwnd)) {
 # Restore/show the window (SW_RESTORE = 9 also un-minimizes).
 [void][DshClockWin32]::ShowWindow($hwnd, 9)
 Start-Sleep -Milliseconds 60
+
+# Critical for "closed with X":
+# Win32 ShowWindow makes the HWND visible, but Electron still believes the
+# window is hidden, so the page is not repainted (the colourful card stays
+# invisible). Starting a second instance hits the app's single-instance
+# handler, which calls window.show()/focus() - exactly what a tray click does.
+# Only needed when the window was hidden or minimized.
+if (-not $wasVisible -or $wasIconic) {
+    try {
+        $exe = (Get-Process -Id $target.Pid -ErrorAction SilentlyContinue).Path
+        if ($exe) {
+            Start-Process -FilePath $exe -WindowStyle Hidden | Out-Null
+            Start-Sleep -Milliseconds 300
+        }
+    } catch { }
+}
 
 # A plain system "ding" is the last-resort fallback: it is audible even when
 # Windows refuses to hand foreground to a background process.
