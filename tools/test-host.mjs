@@ -10,10 +10,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 
-// 用临时设置文件，避免影响（也避免被）真实用户设置影响。
-const settingsFile = path.join(os.tmpdir(), `dsh-clock-test-settings-${process.pid}.json`);
+// 用临时设置/计划文件，避免影响（也避免被）真实用户数据影响。
+const suffix = `${process.pid}-${Date.now()}`;
+const settingsFile = path.join(os.tmpdir(), `dsh-clock-test-settings-${suffix}.json`);
+const plansFile = path.join(os.tmpdir(), `dsh-clock-test-plans-${suffix}.json`);
 fs.rmSync(settingsFile, { force: true });
+fs.rmSync(plansFile, { force: true });
 process.env.DSH_CLOCK_SETTINGS_FILE = settingsFile;
+process.env.DSH_CLOCK_PLANS_FILE = plansFile;
 
 const { apply } = await import('../lib/index.js');
 
@@ -77,14 +81,17 @@ async function call(suffix, method = 'GET') {
   return { status: res.status, headers: res.headers, json: res.body ? JSON.parse(res.body) : null };
 }
 
-async function callPut(suffix, body) {
+async function callWithBody(suffix, method, body) {
   const route = byPath.get(`/dsh-clock/rpc${suffix}`);
   const res = makeRes();
   const req = Readable.from([Buffer.from(JSON.stringify(body), 'utf8')]);
-  req.method = 'PUT';
+  req.method = method;
   await route.handler(req, res);
   return { status: res.status, headers: res.headers, json: res.body ? JSON.parse(res.body) : null };
 }
+
+const callPut = (suffix, body) => callWithBody(suffix, 'PUT', body);
+const callPost = (suffix, body = {}) => callWithBody(suffix, 'POST', body);
 
 // GET /state
 let result = await call('/state');
@@ -94,16 +101,22 @@ assert.equal(result.json.ok, true);
 assert.equal(result.json.state.phase, 'work');
 assert.equal(result.json.state.devMode, false);
 assert.equal(result.json.state.workSeconds, 2700);
+assert.equal(result.json.state.settings.cardScale, 1.5);
 assert.equal(typeof result.json.state.deadline, 'number');
 
-// GET /plans
+// GET /plans：默认 12 套内置、全部启用
 result = await call('/plans');
+assert.equal(result.json.ok, true);
 assert.equal(result.json.plans.length, 12);
+assert.equal(result.json.builtinCount, 12);
+assert.equal(result.json.customCount, 0);
+assert.ok(result.json.plans.every((plan) => plan.builtin === true && plan.disabled === false));
 
 // GET /settings（默认值）
 result = await call('/settings');
 assert.equal(result.json.settings.workMinutes, 45);
 assert.equal(result.json.settings.restMinutes, 0);
+assert.equal(result.json.settings.cardScale, 1.5);
 
 // 非休息阶段的 skip / next 是 no-op
 result = await call('/skip', 'POST');
@@ -123,6 +136,7 @@ result = await callPut('/settings', { workMinutes: 25, restMinutes: 15 });
 assert.equal(result.status, 200);
 assert.equal(result.json.settings.workMinutes, 25);
 assert.equal(result.json.settings.restMinutes, 15);
+assert.equal(result.json.settings.cardScale, 1.5);
 // 当前这一轮不被打断（仍按旧的 45 分钟），设置里的 25 分钟下一轮生效
 assert.equal(result.json.state.workSeconds, 2700);
 assert.equal(result.json.state.settings.workMinutes, 25);
@@ -133,16 +147,115 @@ result = await call('/reset', 'POST');
 assert.equal(result.json.state.workSeconds, 1500);
 
 // PUT /settings：越界值会被夹到合法范围
-result = await callPut('/settings', { workMinutes: 999, restMinutes: 1 });
+result = await callPut('/settings', { workMinutes: 999, restMinutes: 1, cardScale: 9 });
 assert.equal(result.json.settings.workMinutes, 120);
 assert.equal(result.json.settings.restMinutes, 5);
+assert.equal(result.json.settings.cardScale, 2);
+
+// PUT /settings：只传一个字段时，其它字段保持原值（合并而不是覆盖）
+result = await callPut('/settings', { cardScale: 1.2 });
+assert.equal(result.json.settings.workMinutes, 120);
+assert.equal(result.json.settings.restMinutes, 5);
+assert.equal(result.json.settings.cardScale, 1.2);
+
+// ── 计划编辑器：新建一个自己的计划 ─────────────────────────────────────────
+const customDraft = {
+  emoji: '🧪',
+  title: '测试计划',
+  summary: '自动化测试用的计划',
+  intensity: '轻松',
+  focus: '测试',
+  prepareSeconds: 10,
+  steps: [
+    { kind: 'reps', name: '踏步', target: 20, unit: '个', seconds: 200, cue: '测试用的动作' },
+    { kind: 'rest', name: '喝水', seconds: 100, cue: '测试用的休息' },
+    { kind: 'rest', name: '拉伸', seconds: 60, cue: '测试用的收尾' }
+  ]
+};
+
+result = await callPost('/plans', { op: 'save', plan: customDraft });
+assert.equal(result.status, 200);
+assert.equal(result.json.ok, true);
+assert.equal(result.json.plans.length, 13);
+assert.equal(result.json.saved.totalSeconds, 370);
+assert.equal(result.json.saved.title, '测试计划');
+assert.ok(result.json.saved.id.startsWith('my-'), '新计划应自动生成 my- 开头的 id');
+const customId = result.json.saved.id;
+const customInList = result.json.plans.find((plan) => plan.id === customId);
+assert.ok(customInList);
+assert.equal(customInList.builtin, false);
+assert.equal(customInList.disabled, false);
+assert.ok(fs.existsSync(plansFile), '计划文件应已写入');
+
+// ── 直接改内置计划，存成「覆盖」，并且可以恢复默认 ──────────────────────
+const builtin = result.json.plans.find((plan) => plan.id === 'march-calf');
+const overrideDraft = { ...JSON.parse(JSON.stringify(builtin)), title: '踏步（改）' };
+result = await callPost('/plans', { op: 'save', plan: overrideDraft });
+assert.equal(result.status, 200);
+const overridden = result.json.plans.find((plan) => plan.id === 'march-calf');
+assert.equal(overridden.title, '踏步（改）');
+assert.equal(overridden.builtin, true);
+assert.equal(overridden.overridden, true);
+
+// ── 停用 / 启用 ──────────────────────────────────────────────────────────
+result = await callPost('/plans', { op: 'disable', id: 'glute-stand' });
+assert.equal(result.status, 200);
+assert.equal(result.json.plans.find((plan) => plan.id === 'glute-stand').disabled, true);
+
+result = await callPost('/plans', { op: 'enable', id: 'glute-stand' });
+assert.equal(result.status, 200);
+assert.equal(result.json.plans.find((plan) => plan.id === 'glute-stand').disabled, false);
+
+// 停用后再「试做」要给出明确错误；不存在的计划也要给出明确错误
+await callPost('/plans', { op: 'disable', id: 'glute-stand' });
+result = await callPost('/rest', { planId: 'glute-stand' });
+assert.equal(result.json.ok, false);
+assert.match(result.json.error, /已停用/);
+
+result = await callPost('/rest', { planId: 'not-a-real-plan' });
+assert.equal(result.json.ok, false);
+assert.match(result.json.error, /找不到/);
+
+// 恢复内置原样
+result = await callPost('/plans', { op: 'restore', id: 'march-calf' });
+assert.equal(result.status, 200);
+const restored = result.json.plans.find((plan) => plan.id === 'march-calf');
+assert.equal(restored.overridden, false);
+assert.equal(restored.title, '踏步 + 提踵');
+assert.equal(restored.disabled, false);
+
+// 删除自己建的
+result = await callPost('/plans', { op: 'delete', id: customId });
+assert.equal(result.status, 200);
+assert.equal(result.json.plans.length, 12);
+assert.equal(result.json.plans.some((plan) => plan.id === customId), false);
+
+// 至少保留 1 套启用：先停到只剩 1 套，再停最后一套 → 400
+const enabledNow = result.json.plans.filter((plan) => !plan.disabled);
+for (const plan of enabledNow.slice(1)) {
+  const disabled = await callPost('/plans', { op: 'disable', id: plan.id });
+  assert.equal(disabled.status, 200);
+}
+result = await callPost('/plans', { op: 'disable', id: enabledNow[0].id });
+assert.equal(result.status, 400);
+assert.match(result.json.error, /至少要保留 1 套/);
+
+// 全部恢复内置
+result = await callPost('/plans', { op: 'reset-all' });
+assert.equal(result.status, 200);
+assert.equal(result.json.plans.length, 12);
+assert.ok(result.json.plans.every((plan) => plan.overridden === false && plan.disabled === false));
+
+// 未知操作 → 400
+result = await callPost('/plans', { op: 'nonsense' });
+assert.equal(result.status, 400);
 
 // 方法不对 → 405
 result = await call('/state', 'POST');
 assert.equal(result.status, 405);
 assert.equal(result.json.ok, false);
 
-// 收尾：清掉计时器；删除临时设置
+// 收尾：清掉计时器；删除临时文件
 for (const dispose of disposers.reverse()) {
   try {
     dispose();
@@ -151,5 +264,6 @@ for (const dispose of disposers.reverse()) {
   }
 }
 fs.rmSync(settingsFile, { force: true });
+fs.rmSync(plansFile, { force: true });
 
-console.log('✅ host 接线：全部断言通过');
+console.log('✅ host 接线：全部断言通过（含计划增删改 / 停用 / 缩放设置）');

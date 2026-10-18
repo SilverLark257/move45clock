@@ -84,6 +84,25 @@ const chosen = clock.startRestNow('b');
 assert.equal(chosen.id, 'b');
 assert.equal(clock.snapshot().plan.id, 'b');
 
+// 运行时换计划库（设置页保存后宿主调用 setPlans）
+const extra = { id: 'c', title: 'C', totalSeconds: 600, prepareSeconds: 10, steps: [] };
+clock.skipRest();
+clock.startNextRound();
+clock.setPlans([...PLANS, extra]);
+assert.equal(clock.startRestNow('c').id, 'c');
+
+// 空数组会被忽略，不会把计划抽空
+clock.skipRest();
+clock.startNextRound();
+clock.setPlans([]);
+assert.equal(clock.startRestNow('c').id, 'c');
+
+// 不存在的计划 id → 不开始休息（不会偷偷换一套）
+clock.skipRest();
+clock.startNextRound();
+assert.equal(clock.startRestNow('missing'), null);
+assert.equal(clock.snapshot().phase, 'work');
+
 // 显示用的字段
 assert.equal(typeof clock.snapshot().now, 'number');
 assert.equal(typeof clock.snapshot().deadline, 'number');
