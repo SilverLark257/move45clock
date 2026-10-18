@@ -1,11 +1,29 @@
 # 健康钟 · 当前状态
 
-> 更新时间：2026-10-18（第 13 轮：语音播报只报动作名，v1.4.0）
-> 一句话：**v1.4.0：会做操、能改计划、能放大、深夜会提醒，运动时还会报动作名。**
+> 更新时间：2026-10-18（第 14 轮：公共发布准备 / npm 改名 / 用户版 README，v1.4.0）
+> 一句话：**v1.4.0 功能完成，包名改为 dsh-move45clock；用户版 README 已写好，npm 包已打包；只差登录 npm 后发布。**
 
 ---
 
-## 这一轮新增：语音播报（v1.4.0）
+## 第 14 轮：公共发布准备（v1.4.0）
+
+1. **包名改为 `dsh-move45clock`**：
+   - npm 包名不允许大写，`dsh-Move45clock` 会被拒；全小写 `dsh-move45clock` 目前空闲；
+   - 展示名仍叫 **Move45clock**；
+   - 旧名 `dsh-clock` 在 npm 上已被“省钱时钟”占用，不能再用。
+2. **用户版 README**：新的 `README.md` 是给用户看的（亲切/可爱/新手口吻），
+   开发文档移到 `DEVELOPMENT.md`；npm 包里只带用户版。
+3. **匿名化**：`LICENSE` 改为 “The Move45clock authors”，`package.json` 作者为
+   “A first-time vibecoder”；README 里不写真实姓名、邮箱、地址、本机路径。
+4. **安装迁移**：先卸载旧名 `dsh-clock` 的 profile 项，再以 `dsh-move45clock` 重装；
+   设置、计划、夜间记录仍在原存储目录，不动。
+5. **npm 准备**：`npm pack` 通过（`dsh-move45clock-1.4.0.tgz`，16 个文件），
+   `npm publish --dry-run` 通过；**这台机器还没登录 npm，尚未真正 publish**。
+6. **测试**：`npm test` 4 项全绿。
+
+---
+
+## 上一轮新增：语音播报（v1.4.0）
 
 1. **准备页「🔊 动起来（带语音）」**：点一下，用系统自带中文语音报动作；
 2. **只报动作名**：`开始肩颈绕环动作`、`接下来，开始原地踏步动作`；
@@ -16,7 +34,7 @@
 
 ---
 
-## 上一轮新增：夜间提醒（v1.3.1）
+## 夜间提醒（v1.3.1）
 
 1. **21:30 / 22:00 / 22:30 三条夜间提醒**：
    - 21:30「已经九点半了」——距离该休息还剩一小时，把手里的事收个尾；
@@ -62,6 +80,8 @@
 | 夜间提醒（21:30 / 22:00 / 22:30） | ✅ 已实现，待重启 DSH 真机验收 |
 | 夜间提醒去重（night.json） | ✅ 已实现，`test-night` / `test-host` 覆盖 |
 | 语音播报（只报动作名） | ✅ 已实现并经用户试听，待最终验收 |
+| npm 包（dsh-move45clock@1.4.0） | ✅ 已打包 / dry-run 通过；⬜ 待登录 npm 后发布 |
+| 包名迁移（旧 dsh-clock → 新名） | ✅ 已卸载旧 profile 项并重装新名 |
 | 宿主 / 客户端测试 | ✅ 全部通过 |
 | **重启 DSH 验收 v1.4.0** | ⬜ 宿主和客户端都改了，**必须完全重启** |
 
@@ -253,31 +273,27 @@ npm test
 
 ---
 
-## 给下一位接手的 Agent（2026-10-18，第 13 轮）
+## 给下一位接手的 Agent（2026-10-18，第 14 轮）
 
-- **v1.4.0 已合并 `main`**：计划可视化编辑器 + 弹窗放大（v1.2.0）+
-  夜间提醒（v1.3.1）+ 语音播报（v1.4.0）；准备打 tag。
-- 语音是纯客户端：浏览器 `speechSynthesis` + 系统中文语音；不改宿主、计划格式、settings；
-  准备页「🔊 动起来」开启，只报动作名，不读数；卡片卸载时 `cancel()`。
-- 上一轮（v1.1.0）已验收并打 tag；第 9 轮计划调整已在真机确认。
-- 入口：
-  - 设置页在 **设置 → 健康钟**；
-  - 计划编辑器在同一页的「计划库」；
-  - 夜间提醒开关 / 预览也在设置页；
-  - 语音在休息卡片准备页，不是设置项；
-  - 左下角「现在休息一下」随机抽一套（只抽启用的）。
+- **v1.4.0 已合并 `main`**：计划编辑器 + 弹窗放大 + 夜间提醒 + 语音播报；
+  公开包名已改为 **`dsh-move45clock`**（npm 不允许大写；旧 `dsh-clock` 被占用）。
+- 安装已迁移：旧名 `dsh-clock` 从 profile 卸载，新名 `dsh-move45clock` 已安装；
+  存储目录仍是 `~/.dsh/storages/dsh-clock`，数据没动。
+- README 已拆：`README.md` 用户版（亲切、无真实信息）；`DEVELOPMENT.md` 开发版。
+- npm：`npm pack` + `npm publish --dry-run` 通过；**本机未登录 npm，尚未真正 publish**。
+  登录命令：`npm login --registry=https://registry.npmjs.org`；
+  之后 `npm publish --registry=https://registry.npmjs.org`。
+- GitHub：沙箱访问不了 GitHub（git/SSL），建仓/推送需用户操作；仓库需 Public、
+  满 1 天、有 `dsh.bundle`、加 `dsh-plugin` topic；市场目录
+  `awesome-dsh-plugin/awesome-dsh-plugin`，条目 `data/plugins/<owner>__<repo>.yml`。
+- 入口：设置页在 **设置 → 健康钟**；计划编辑器、夜间开关/预览在同一页；
+  语音在休息卡片准备页，不是设置项。
 - 存储：
   - `~/.dsh/storages/dsh-clock/settings.json`（work/rest/cardScale/nightEnabled）；
   - `~/.dsh/storages/dsh-clock/plans.json`（overrides/custom/disabled）；
   - `~/.dsh/storages/dsh-clock/night.json`（date/shown）。
 - 路由 9 条 exact 路由；`/plans` GET/POST；`/night` POST（dismiss/preview）。
-- 发布状态（重要）：
-  - npm 上 `dsh-clock` 已被别人占用（0.1.2，省钱时钟），不能直接发 npm；
-  - 市场目录是 `awesome-dsh-plugin/awesome-dsh-plugin`，dsh-market 只读取它；
-    条目格式 `data/plugins/<owner>__<repo>.yml`，GitHub 仓库需满 1 天；
-  - 这台机器沙箱访问不了 GitHub，创建仓库/推送需要用户在 GitHub 网页或 GitHub Desktop 完成；
-  - 发布辅助文件见 `publish/`（如果已生成）。
 - 测试 `npm test` 当前全绿（计划、状态机、夜间、宿主接线）；语音靠真机试听。
 - 唤醒日志：`%TEMP%\dsh-clock-wake.log`。
-- 下一轮候选：统计、系统通知/置顶、语音音量/语速、i18n、正式发布。
+- 下一轮候选：npm 发布、GitHub 仓库 + 市场目录、统计、系统通知/置顶、语音音量/语速。
 - 用户不懂编程：用大白话，先"我做了什么"，再"打个比方"；改计划/动业务前先确认。

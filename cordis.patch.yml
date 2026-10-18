@@ -9,4 +9,4 @@
 # Web 端会额外把 ./client 作为浏览器半边加载。
 - insert:
     - id: health-clock
-      name: 'dsh-clock'
+      name: 'dsh-move45clock'

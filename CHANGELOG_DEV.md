@@ -8,7 +8,7 @@
 
 ### 做了什么
 
-1. 扫描工作区 `D:\deepseekAI\dsh-clock`：确认是空文件夹。
+1. 扫描工作区（项目目录）：确认是空文件夹。
 2. 阅读 DSH 插件开发规范，确认了几件关键事：
    - 弹窗可以放在 `shell.overlay`（DSH 自带的整框最上层浮层）；
    - 客户端插件通过 `client.js` 注册"懒加载工厂"，React 由 DSH 提供；
@@ -23,10 +23,10 @@
 ### 发现的问题
 
 - **工作区命令行不可用（已修复）**：`pwsh` 曾报
-  `SetNamedSecurityInfoW failed (Win32 5): grantWrite(D:\deepseekAI\dsh-clock)`。
+  `SetNamedSecurityInfoW failed (Win32 5): grantWrite(<项目目录>)`。
   用 DSH 自带的"文件夹权限诊断修复"脚本处理后，给当前用户补上了缺失的写权限
   （只动权限，不动文件内容/所有者），`pwsh` 已恢复正常。
-  备份与回滚记录：`D:\deepseekAI\dsh-clock-acl-repair`。
+  备份与回滚记录：`<项目目录>-acl-repair`。
 - 清理了临时探针文件 `_probe.txt`（验证写权限用）。
 - DSH 版本为 `0.2.1-rc.2`，与网上较新的插件文档可能存在差异，后续以本机实测为准。
 
@@ -517,6 +517,53 @@
 
 - 发布到 GitHub + DSH 插件市场（目录：awesome-dsh-plugin）；
 - 下一轮候选：语音音量/语速、统计、系统通知/置顶、i18n。
+
+## 2026-10-18 · 第 14 轮：公共发布准备 / npm 改名 / 用户版 README（v1.4.0）
+
+### 你的需求
+
+- npm 要发，试试 `dsh-Move45clock` 这个名字；
+- 写一份给用户看的 README：安装步骤、使用说明，语言亲切有趣可爱；
+- 表明作者是完全的新手、第一次用 DeepSeek Harness 做 vibecoding；
+- **绝不要填真实地址和个人信息**。
+
+### 做了什么
+
+1. **名字**：npm 不允许大写，`dsh-Move45clock` 不可用；改用全小写
+   **`dsh-move45clock`**（查询为 404，当前空闲）；展示名仍是 Move45clock。
+   `dsh-clock` 已被 npm 上的“省钱时钟”占用，不能再用。
+2. **用户版 README**：新 `README.md`（亲切、可爱、新手口吻，包含安装/使用/常见问题/
+   作者的话），不写真实姓名、邮箱、地址、本机路径；开发文档移到 `DEVELOPMENT.md`，
+   npm 包只带用户版。
+3. **匿名化**：`LICENSE` 改为 “The Move45clock authors”；
+   `package.json` 作者改为 “A first-time vibecoder”；不填 repository/homepage 等真实地址。
+4. **安装迁移**：先 `tools/install.js --uninstall` 移除旧名 `dsh-clock` 的 profile 项，
+   改名后 `tools/install.js` 以 `dsh-move45clock` 重装；设置/计划/夜间数据不动。
+5. **npm 准备**：`npm pack` 生成 `dsh-move45clock-1.4.0.tgz`（16 个文件，约 59 KB），
+   `npm publish --dry-run` 通过；**但本机未登录 npm，尚未真正 publish**。
+6. **测试**：`npm test` 4 项全绿。
+
+### 发现 / 踩坑
+
+- npm 包名规则：不能含大写；`dsh-Move45clock` 只适合做展示名。
+- `npm pack` 会自动收 README*；把开发文档改名 `DEVELOPMENT.md` 后，npm 包里就只剩
+  用户版 README 了。
+- 改包名必须“先卸载旧名、再装新名”，否则 profile 里会同时留着旧依赖/联接。
+- 沙箱访问不了 GitHub（git/SSL），GitHub 建仓/推送仍需用户操作；
+  市场目录要求仓库创建满 1 天。
+
+### 待完成
+
+- **npm 登录**：`npm login --registry=https://registry.npmjs.org`，登录后执行
+  `npm publish --registry=https://registry.npmjs.org`；
+- **GitHub**：建 Public 仓库、加 `dsh-plugin` topic、推送；
+- **市场**：仓库满 1 天后，向 `awesome-dsh-plugin` 提交 `data/plugins/<owner>__<repo>.yml`。
+
+### 下次从哪继续
+
+- 登录 npm 后发布 `dsh-move45clock@1.4.0`；
+- 建 GitHub 仓库并推 `main` + `v1.4.0`；
+- 准备好目录条目，明天提 PR。
 
 ---
 

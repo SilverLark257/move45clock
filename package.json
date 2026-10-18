@@ -1,7 +1,7 @@
 {
-  "name": "dsh-clock",
+  "name": "dsh-move45clock",
   "version": "1.4.0",
-  "description": "DSH 健康钟插件：每工作 45 分钟弹出卡通休息卡片，随机派一个休息计划（锻炼任务 + 10~15 分钟倒计时），软锁定休息，结束后循环。",
+  "description": "Move45clock · 健康钟：每工作 45 分钟弹出引导式休息卡片，内置 12 套 12～15 分钟坐/站计划；支持可视化编辑计划、弹窗放大、夜间提醒和可选的动作名语音播报。",
   "keywords": [
     "deepseek-harness",
     "dsh",
@@ -10,9 +10,11 @@
     "break",
     "timer",
     "pomodoro",
+    "move45clock",
     "健康钟",
     "休息"
   ],
+  "author": "A first-time vibecoder",
   "type": "module",
   "main": "lib/index.js",
   "scripts": {
@@ -52,5 +54,8 @@
       }
     }
   },
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  }
 }
