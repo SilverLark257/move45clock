@@ -10,14 +10,20 @@ import os from 'node:os';
 import path from 'node:path';
 import { Readable } from 'node:stream';
 
-// 用临时设置/计划文件，避免影响（也避免被）真实用户数据影响。
+// 用临时设置/计划/夜间文件，避免影响（也避免被）真实用户数据影响。
 const suffix = `${process.pid}-${Date.now()}`;
 const settingsFile = path.join(os.tmpdir(), `dsh-clock-test-settings-${suffix}.json`);
 const plansFile = path.join(os.tmpdir(), `dsh-clock-test-plans-${suffix}.json`);
+const nightFile = path.join(os.tmpdir(), `dsh-clock-test-night-${suffix}.json`);
 fs.rmSync(settingsFile, { force: true });
 fs.rmSync(plansFile, { force: true });
+fs.rmSync(nightFile, { force: true });
 process.env.DSH_CLOCK_SETTINGS_FILE = settingsFile;
 process.env.DSH_CLOCK_PLANS_FILE = plansFile;
+process.env.DSH_CLOCK_NIGHT_FILE = nightFile;
+// 固定成 21:45，验证"启动时补最近一条 21:30"；测试里不真的叫醒窗口。
+process.env.DSH_CLOCK_NIGHT_NOW = '2026-10-18T21:45:00+08:00';
+process.env.DSH_CLOCK_NO_WAKE = '1';
 
 const { apply } = await import('../lib/index.js');
 
@@ -53,9 +59,9 @@ const fakeCtx = {
 
 apply(fakeCtx);
 
-assert.equal(routes.length, 8);
+assert.equal(routes.length, 9);
 const byPath = new Map(routes.map((item) => [item.path, item]));
-for (const suffix of ['/state', '/plans', '/settings', '/rest', '/skip', '/next', '/reset', '/wake']) {
+for (const suffix of ['/state', '/plans', '/settings', '/rest', '/skip', '/next', '/reset', '/wake', '/night']) {
   assert.ok(byPath.has(`/dsh-clock/rpc${suffix}`), `missing route ${suffix}`);
 }
 
@@ -104,6 +110,13 @@ assert.equal(result.json.state.workSeconds, 2700);
 assert.equal(result.json.state.settings.cardScale, 1.5);
 assert.equal(typeof result.json.state.deadline, 'number');
 
+// 启动时固定为 21:45：应补一条最近的 21:30 夜间提醒（测试里不叫醒窗口）
+assert.equal(result.json.state.night.active, true);
+assert.equal(result.json.state.night.slot.id, '21:30');
+result = await callPost('/night', { action: 'dismiss' });
+assert.equal(result.status, 200);
+assert.equal(result.json.state.night.active, false);
+
 // GET /plans：默认 12 套内置、全部启用
 result = await call('/plans');
 assert.equal(result.json.ok, true);
@@ -117,6 +130,23 @@ result = await call('/settings');
 assert.equal(result.json.settings.workMinutes, 45);
 assert.equal(result.json.settings.restMinutes, 0);
 assert.equal(result.json.settings.cardScale, 1.5);
+assert.equal(result.json.settings.nightEnabled, true);
+
+// 夜间提醒：预览 / 开关 / 未知操作
+result = await callPost('/night', { action: 'preview', slotId: '22:30' });
+assert.equal(result.status, 200);
+assert.equal(result.json.state.night.active, true);
+assert.equal(result.json.state.night.slot.id, '22:30');
+
+result = await callPut('/settings', { nightEnabled: false });
+assert.equal(result.json.settings.nightEnabled, false);
+assert.equal(result.json.state.night.active, false, '关掉夜间提醒后，正在显示的卡片也要收起');
+
+result = await callPost('/night', { action: 'bogus' });
+assert.equal(result.status, 400);
+
+result = await callPut('/settings', { nightEnabled: true });
+assert.equal(result.json.settings.nightEnabled, true);
 
 // 非休息阶段的 skip / next 是 no-op
 result = await call('/skip', 'POST');
@@ -265,5 +295,6 @@ for (const dispose of disposers.reverse()) {
 }
 fs.rmSync(settingsFile, { force: true });
 fs.rmSync(plansFile, { force: true });
+fs.rmSync(nightFile, { force: true });
 
-console.log('✅ host 接线：全部断言通过（含计划增删改 / 停用 / 缩放设置）');
+console.log('✅ host 接线：全部断言通过（含计划增删改 / 停用 / 缩放设置 / 夜间提醒）');

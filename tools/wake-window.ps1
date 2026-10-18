@@ -1,5 +1,6 @@
 param(
   [switch]$ListOnly,
+  [switch]$Quiet,
   [string]$ProcessName = 'DeepSeek Harness'
 )
 
@@ -259,8 +260,11 @@ if (-not [DshClockWin32]::IsWindowVisible($hwnd) -or [DshClockWin32]::IsIconic($
 }
 
 # A plain system "ding" is the last-resort fallback: it is audible even when
-# Windows refuses to hand foreground to a background process.
-try { [System.Media.SystemSounds]::Exclamation.Play() } catch { }
+# Windows refuses to hand foreground to a background process. Night reminders
+# pass -Quiet so 21:30 / 22:00 / 22:30 stay gentle.
+if (-not $Quiet) {
+    try { [System.Media.SystemSounds]::Exclamation.Play() } catch { }
+}
 
 # Windows may refuse foreground changes from a background process. Try the
 # plain call first; only tap Alt when it fails (tapping Alt unconditionally can
