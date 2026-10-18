@@ -1,0 +1,8 @@
+# 复制到 awesome-dsh-plugin 的 data/plugins/<owner>__<repo>.yml
+# 把 OWNER / REPO 换成你的 GitHub 用户名和仓库名。
+url: https://github.com/OWNER/REPO
+name: OWNER/REPO
+category: ui
+description:
+  en: 'A health clock for DeepSeek Harness: a 45-minute work timer, 12 guided 12–15 minute seated/standing break plans, a visual plan editor, scalable reminder cards, 21:30/22:00/22:30 night reminders, and optional action-name voice coaching. Windows-only window wake.'
+  zh: 'DSH 健康钟：每工作 45 分钟弹出引导式休息卡片，内置 12 套 12～15 分钟坐/站计划；支持可视化编辑计划、弹窗放大、21:30/22:00/22:30 夜间提醒，以及可选的动作名语音播报；Windows 下可把托盘窗口叫回前台。'

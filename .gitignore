@@ -4,6 +4,12 @@ node_modules/
 # 打包产物（如以后做 zip 分发）
 dist/
 
+# 临时 npm 缓存 / 发布附件
+.npm-cache/
+publish/*.tgz
+publish/*.zip
+publish/*.bundle
+
 # 日志
 *.log
 
