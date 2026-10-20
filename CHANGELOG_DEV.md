@@ -669,6 +669,43 @@
 - 不发 npm；邮箱不会进 npm 元数据。
 - 内部包名固定 `dsh-clock`（ADR-026）；公开名 Move45clock。
 
+## 2026-10-20 · 第 18 轮：GitHub 发布补齐 + 市场目录 PR #8227（v1.4.0）
+
+### 做了什么
+
+1. 只读核对 GitHub：topic 为空、Releases 为空、远端没有 `v1.4.0` tag（本地有）；
+   仓库创建于 2026-10-18 21:24（UTC+8），到 10-20 已满 1 天。
+2. 用户操作：加 topic `dsh-plugin` / `dsh-plugin-desktop`；建 Release `v1.4.0`
+   （target `main`，附件 `move45clock-1.4.0.tgz`）；fork 目录仓库并提交条目。
+3. 目录条目：`data/plugins/SilverLark257__move45clock.yml`（6 行，category `notify`）。
+   分类从 `ui` 改为 `notify`：同类的 `sorawithcat/dsh-health-reminder` 就在 notify，
+   投稿规则要求按实际功能选。
+4. 发现首次 fork 提交是网页提交，作者邮箱用了账号主邮箱；开启
+   “Keep my email addresses private” 后删除 fork 重建，新提交作者变为
+   `341011573+SilverLark257@users.noreply.github.com`。
+5. 开 PR `awesome-dsh-plugin#8227`：`Add SilverLark257/move45clock`，+6/−0，1 个文件，
+   mergeable。
+6. 本地 tag `v1.4.0` 从 `af943d4` 移到 `dfe23e0`，与 GitHub Release 对齐。
+7. Release 附件 `move45clock-1.4.0.tgz` 已解包逐文件比对：与当前仓库代码哈希一致，
+   包名 `dsh-clock@1.4.0`，不是改名失败时的坏包。
+
+### 发现 / 踩坑
+
+- 本机 git 连不上 `github.com:443`（`curl` / 只读 API 可以），所以推送和所有 GitHub
+  写操作只能由用户在网页 / GitHub Desktop 完成；读状态用 API / raw / jsDelivr。
+- **首次贡献者的 `pull_request` workflow 需要维护者批准才运行**：run 结论是
+  `action_required`，PR 页面显示 “Approve and run”。这不是 CI 失败，不要按红叉处理。
+- 网页提交默认用账号主邮箱；如果没开 “Keep my email addresses private”，邮箱会永久
+  写进公开提交历史（npm 邮箱隐私的同一类问题）。提 PR 前先查 `commits` 里的 author email。
+- 目录的 README 由 `data/plugins/*.yml` 生成，PR 只加 yml，不要手改 README。
+
+### 下次从哪继续
+
+- 盯 #8227：批准后跑 `PR check`；红了只改我们的 yml（fork main 提交即自动更新 PR）。
+- 合并后目录在 main 自动重新生成，市场可搜到；再按 README 走一遍安装验收。
+- 本地这轮文档提交尚未推 GitHub（git 网络不通），有网络时用 GitHub Desktop push。
+- 可选：实测 tarball 安装后，给条目加 `tarball:` 指向固定 tag 的 Release 附件。
+
 ---
 
 <!--

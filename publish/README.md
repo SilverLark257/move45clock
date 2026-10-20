@@ -7,13 +7,15 @@
 
 ---
 
-## 现在的状态
+## 现在的状态（2026-10-20）
 
 - 内部包名：`dsh-clock`（安装名）；公开仓库 / 展示名：`move45clock` / **Move45clock**；
 - 用户版 `README.md` 已写好，安装说明只写“插件市场搜索 Move45clock”，不再教 npm 命令；
-- 本地插件已回退到 `dsh-clock` 并恢复 profile（主题 / 市场 / 计费也一起回来）；
-- 发布包 `publish/move45clock-1.4.0.tgz` 只是可选的 GitHub Release 附件；
-- 这台机器的沙箱**访问不了 GitHub**，建仓库 / 推送 / 提 PR 需要你操作。
+- 发布包 `publish/move45clock-1.4.0.tgz` 已作为 Release 附件上传，并逐文件核对与仓库代码一致；
+- 仓库已加 topic `dsh-plugin` / `dsh-plugin-desktop`；Release `v1.4.0` 已发布；
+- 目录 PR **#8227** 已提交（`data/plugins/SilverLark257__move45clock.yml`，category `notify`），
+  CI 当前是 `action_required`——首次贡献者需要维护者批准，不是失败；
+- 这台机器的 git 连不上 `github.com:443`，写操作（建仓 / 推送 / 提 PR）需要你操作。
 
 ---
 
@@ -43,27 +45,35 @@ git push -u origin main --tags
 
 ---
 
-## 第 3 步：建 Release（可选）
+## 第 3 步：建 Release（✅ 2026-10-20 已完成）
 
-tag 选 `v1.4.0`，附件上传 `publish/move45clock-1.4.0.tgz`。
+tag 选 `v1.4.0`，target `main`，附件上传 `publish/move45clock-1.4.0.tgz`。
 
 > 有 Release 附件时，市场可以优先给预构建包；没有也能从 GitHub 源码安装。
+>
+> 注意：GitHub 上创建的 tag 指向当前 `main`（`dfe23e0`），本地 tag 已对齐到同一个提交。
 
 ---
 
-## 第 4 步：提交市场目录（仓库创建满 1 天后）
+## 第 4 步：提交市场目录（✅ 2026-10-20 已提交 PR #8227）
 
 市场（dsh-market）读的是社区目录 **awesome-dsh-plugin/awesome-dsh-plugin**。
 
-1. Fork 这个目录仓库；
-2. 新建 `data/plugins/<owner>__<repo>.yml`；
-3. 内容复制 `publish/catalog-entry.yml`，把 `OWNER` / `REPO` 换成你的；
-4. Commit → Contribute → Open pull request；
-5. PR 标题：`Add <owner>/<repo>`；
-6. CI 检查通过后，维护者合并；市场隔天能搜到。
+实际走的流程：
+
+1. Fork 目录仓库 `awesome-dsh-plugin/awesome-dsh-plugin`；
+2. 新建 `data/plugins/SilverLark257__move45clock.yml`（内容见 `publish/catalog-entry.yml`）；
+3. 网页提交 → Contribute → Open pull request；
+4. PR 标题：`Add SilverLark257/move45clock`；
+5. PR #8227 已开：+6/−0，1 个文件；CI run 状态 `action_required`（首次贡献者，
+   要维护者点 “Approve and run”，不是失败）；
+6. 维护者合并后，`main` 自动重新生成 README；市场隔天能搜到。
 
 > 硬规则：仓库 Public、创建满 1 天、`package.json` 有 `dsh.bundle`、加 `dsh-plugin` topic、
 > 有真实可用的代码。一个 PR 最多 1～3 条。
+>
+> 分类用 `notify`：同类的健康提醒插件（sorawithcat/dsh-health-reminder）就在这一类，
+> 投稿规则要求按“实际做什么”选，而不是按界面形式。
 
 ---
 
@@ -78,7 +88,8 @@ tag 选 `v1.4.0`，附件上传 `publish/move45clock-1.4.0.tgz`。
 
 ## 不写进公开仓库的东西
 
-- 真实姓名、邮箱、住址、电话；
+- 真实姓名、邮箱、住址、电话（**网页提交也算**：先开 GitHub 的
+  “Keep my email addresses private”，否则账号主邮箱会写进公开提交历史）；
 - 本机绝对路径、Windows 用户名；
 - npm / GitHub 的 token、密码；
 - 私人截图。

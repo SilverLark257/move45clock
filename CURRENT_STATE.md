@@ -1,7 +1,27 @@
 # 健康钟 · 当前状态
 
-> 更新时间：2026-10-18（第 17 轮：GitHub 推送完成，等待市场目录）
-> 一句话：**v1.4.0 已上 GitHub（main `af943d4`）；插件运行正常；下一步是补 topic/tag、仓库满 1 天后提市场目录。**
+> 更新时间：2026-10-20（第 18 轮：市场目录 PR #8227 已提交，CI 等维护者批准）
+> 一句话：**v1.4.0 已上 GitHub（main `dfe23e0`）；topic / Release 已补；目录 PR #8227 已开，等维护者批准 CI。**
+
+---
+
+## 第 18 轮：市场目录 PR 已提交（2026-10-20）
+
+- **GitHub 发布补齐**：仓库 About → Topics 加了 `dsh-plugin`（另带 `dsh-plugin-desktop`）；
+  Releases 建了 `v1.4.0`（target `main`），附件 `move45clock-1.4.0.tgz`（59 KB，
+  已逐文件核对与仓库代码一致）；
+- **tag 对齐**：本地 `v1.4.0` 从 `af943d4` 移到 `dfe23e0`，与 GitHub Release 同一提交；
+- **目录条目**：`data/plugins/SilverLark257__move45clock.yml` 共 6 行；分类由 `ui` 改为 `notify`
+  （目录里同类健康提醒 `sorawithcat/dsh-health-reminder` 归在 notify，投稿规则要求按实际功能选）；
+- **邮箱隐私**：第一次 fork 提交是网页提交，误用了账号主邮箱；发现后开启
+  “Keep my email addresses private”，删除 fork 重做。新提交 `58006f4` 作者为
+  `341011573+SilverLark257@users.noreply.github.com`；
+- **PR**：[awesome-dsh-plugin#8227](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/8227)
+  `Add SilverLark257/move45clock`，+6/−0，1 个文件；
+- **CI 现状**：`PR check` 的 run 结论是 `action_required`——首次贡献者的 workflow 需要维护者
+  点 “Approve and run”，**不是失败**；批准后才会真正跑检查；
+- **待办**：等批准 → CI 全绿 → 维护者合并；合并后目录自动重新生成，市场可搜到。
+  若维护者要求改描述 / 分类，只改条目文件，不碰生成的 README。
 
 ---
 
@@ -127,9 +147,9 @@
 | 语音播报（只报动作名） | ✅ 已实现并经用户试听 |
 | DSH 启动修复 | ✅ 用户已重启验证，插件正常 |
 | npm 包 | ❌ 已取消（邮箱隐私；不发 npm） |
-| GitHub 仓库 | ✅ 已推 `main`（`af943d4`） |
-| GitHub topic / tag | ⬜ 待用户加 `dsh-plugin` / 建 `v1.4.0` Release |
-| 市场目录条目 | ⬜ 仓库满 1 天后提交（10-19 21:20 后） |
+| GitHub 仓库 | ✅ 已推 `main`（`dfe23e0`） |
+| GitHub topic / Release | ✅ `dsh-plugin` + `dsh-plugin-desktop` / `v1.4.0`（含 tgz 附件） |
+| 市场目录条目 | 🟡 PR #8227 已提交，CI 等维护者批准（`action_required`） |
 | 内部包名 | ✅ `dsh-clock`；公开仓库 `move45clock` |
 | 宿主 / 客户端测试 | ✅ 全部通过 |
 
