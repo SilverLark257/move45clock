@@ -55,7 +55,7 @@ tag 选 `v1.4.0`，target `main`，附件上传 `publish/move45clock-1.4.0.tgz`�
 
 ---
 
-## 第 4 步：提交市场目录（✅ 2026-10-20 已提交 PR #8227）
+## 第 4 步：提交市场目录（✅ 2026-10-21 已合并 PR #8227）
 
 市场（dsh-market）读的是社区目录 **awesome-dsh-plugin/awesome-dsh-plugin**。
 
@@ -65,9 +65,8 @@ tag 选 `v1.4.0`，target `main`，附件上传 `publish/move45clock-1.4.0.tgz`�
 2. 新建 `data/plugins/SilverLark257__move45clock.yml`（内容见 `publish/catalog-entry.yml`）；
 3. 网页提交 → Contribute → Open pull request；
 4. PR 标题：`Add SilverLark257/move45clock`；
-5. PR #8227 已开：+6/−0，1 个文件；CI run 状态 `action_required`（首次贡献者，
-   要维护者点 “Approve and run”，不是失败）；
-6. 维护者合并后，`main` 自动重新生成 README；市场隔天能搜到。
+5. PR #8227 于 2026-10-21 02:03 合并（+6/−0，1 个文件）；维护者批准后 CI 第 2 次运行全绿；
+6. `main` 自动重新生成 README；市场已能搜到 **Move45clock**。
 
 > 硬规则：仓库 Public、创建满 1 天、`package.json` 有 `dsh.bundle`、加 `dsh-plugin` topic、
 > 有真实可用的代码。一个 PR 最多 1～3 条。
@@ -77,11 +76,11 @@ tag 选 `v1.4.0`，target `main`，附件上传 `publish/move45clock-1.4.0.tgz`�
 
 ---
 
-## 第 5 步：发布后验证
+## 第 5 步：发布后验证（待做）
 
 1. DSH → 设置 → 插件市场 → 搜 **Move45clock**；
 2. 看条目是否打开、安装按钮是否可用；
-3. 在一个干净 profile 里装一次，确认左下角出现 🐣；
+3. 按老规矩先卸载再安装（会替换当前 `file:` 安装；设置 / 计划 / 夜间记录不受影响）；
 4. 试做一套计划 + 预览夜间提醒 + 点一次语音。
 
 ---

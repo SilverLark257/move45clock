@@ -1,7 +1,22 @@
 # 健康钟 · 当前状态
 
-> 更新时间：2026-10-20（第 18 轮：市场目录 PR #8227 已提交，CI 等维护者批准）
-> 一句话：**v1.4.0 已上 GitHub（main `dfe23e0`）；topic / Release 已补；目录 PR #8227 已开，等维护者批准 CI。**
+> 更新时间：2026-10-24（第 19 轮：目录 PR #8227 已合并，Move45clock 上线）
+> 一句话：**Move45clock 已进 awesome-dsh-plugin 目录（PR #8227 于 10-21 合并，CI 全绿）；插件运行正常；下一步市场安装验收或做候选功能。**
+
+---
+
+## 第 19 轮：目录 PR 合并，条目上线（2026-10-24）
+
+- PR [`awesome-dsh-plugin#8227`](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/pull/8227)
+  于 **2026-10-21 02:03（UTC+8）** 被维护者 `fkysly` 合并（merge commit `4cd8909`）；
+- CI 在维护者批准后跑了第 2 次（run attempt 2），**2026-10-21 01:04 全绿**（`PR check` success）；
+- 官方 `main` 已有 `data/plugins/SilverLark257__move45clock.yml`，内容与提交一致
+  （6 行，category `notify`）；
+- 目录 README / 网站由 `main` 自动重建，市场（dsh-market）随后可搜到 **Move45clock**；
+- 本地：`main` = `origin/main` = `98ad4fe`；tag `v1.4.0` → `dfe23e0`；工作区干净；
+- 插件 live：工作 40 分钟、夜间提醒开；`doneCount=1`、`lastPlanId=baduanjin`（用户做过一次）；
+- **注意**：本机插件仍是 `file:` 安装（junction），不是市场安装；
+  不重装就不影响现有设置 / 计划 / 夜间记录。
 
 ---
 
@@ -149,7 +164,7 @@
 | npm 包 | ❌ 已取消（邮箱隐私；不发 npm） |
 | GitHub 仓库 | ✅ 已推 `main`（`dfe23e0`） |
 | GitHub topic / Release | ✅ `dsh-plugin` + `dsh-plugin-desktop` / `v1.4.0`（含 tgz 附件） |
-| 市场目录条目 | 🟡 PR #8227 已提交，CI 等维护者批准（`action_required`） |
+| 市场目录条目 | ✅ PR #8227 已合并（2026-10-21），条目在官方 `main` |
 | 内部包名 | ✅ `dsh-clock`；公开仓库 `move45clock` |
 | 宿主 / 客户端测试 | ✅ 全部通过 |
 
