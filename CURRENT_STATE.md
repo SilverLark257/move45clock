@@ -29,10 +29,19 @@
 ### 版本 / 测试
 
 - 版本 **1.5.0**（`package.json` + `CLIENT_VERSION`）；
-- `npm test` 5 项全绿（新增 `test-stats`）；
-- `test-host`：10 条路由、`notifyWindow` 开关、`/notify` 预览、`/state.stats` 形状；
+- `npm test` 6 项全绿（新增 `test-stats` / `test-resume`）；
+- `test-host`：10 条路由、`notifyWindow` 开关、`/notify` 预览、`/state.stats` 形状、快照落盘；
 - **待用户**：完全退出 DSH 再打开 → 设置页「预览小窗」→ 试做 / 等一次休息 →
-  重启看统计是否保留。
+  重启看统计与倒计时是否接续。
+
+### 用户反馈补丁（同日）
+
+- **重启接续**：新增 `clock.json` 快照（`DSH_CLOCK_CLOCK_FILE` 可覆盖）；
+  同一天内重启 DSH，工作 / 休息按 deadline 接着走；跨天重置；
+  关着时工作已到点 → 打开直接进休息；休息在关着时结束 → 开新一轮（不补统计）；
+  新增 `tools/test-resume.mjs`（预写快照，验证 `/state` 接上 deadline / 完成次数）；
+- **小窗按钮重做**：渐变胶囊 + 播放三角 + 悬停/按下缩放 + 柔和阴影；
+  标题加 🐣 圆形徽章，正文分成「计划名 / 概要 / 时长」三层；窗口加投影；
 
 ---
 
@@ -193,6 +202,7 @@
 | 语音播报（只报动作名） | ✅ 已实现并经用户试听 |
 | 今日统计 / 连续天数（v1.5.0） | ✅ 已实现，`test-stats` / `test-host` 覆盖；待重启验收 |
 | 到点置顶小窗（v1.5.0） | ✅ 已实现（Windows），设置页可预览；待重启验收 |
+| 重启接续（v1.5.0） | ✅ `clock.json` 快照，`test-resume` 覆盖；待重启验收 |
 | DSH 启动修复 | ✅ 用户已重启验证，插件正常 |
 | npm 包 | ❌ 已取消（邮箱隐私；不发 npm） |
 | GitHub 仓库 | ✅ 已推 `main`（`dfe23e0`） |
@@ -224,7 +234,8 @@
 设置文件：`~/.dsh/storages/dsh-clock/settings.json`；
 计划文件：`~/.dsh/storages/dsh-clock/plans.json`；
 夜间记录：`~/.dsh/storages/dsh-clock/night.json`；
-统计记录：`~/.dsh/storages/dsh-clock/stats.json`。
+统计记录：`~/.dsh/storages/dsh-clock/stats.json`；
+计时快照：`~/.dsh/storages/dsh-clock/clock.json`。
 
 ---
 

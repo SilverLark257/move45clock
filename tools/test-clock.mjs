@@ -103,6 +103,76 @@ clock.startNextRound();
 assert.equal(clock.startRestNow('missing'), null);
 assert.equal(clock.snapshot().phase, 'work');
 
+// ── 重启恢复：工作状态的剩余时间要接上 ─────────────────────────────────────
+{
+  let now = 5_000_000;
+  const fresh = createClock({ now: () => now, workMs: 60_000, restMsFor: () => 60_000, plans: PLANS });
+  const saved = {
+    version: 3,
+    phase: 'work',
+    startedAt: now - 30_000,
+    deadline: now + 30_000,
+    workSeconds: 60,
+    plan: null,
+    restSeconds: 0,
+    lastPlanId: 'a',
+    doneCount: 2,
+    skipped: false
+  };
+  assert.equal(fresh.restore(saved), true);
+  let restored = fresh.snapshot();
+  assert.equal(restored.phase, 'work');
+  assert.equal(restored.deadline, now + 30_000);
+  assert.equal(restored.doneCount, 2);
+  assert.equal(restored.workSeconds, 60);
+
+  now += 30_000;
+  const event = fresh.tick();
+  assert.equal(event?.type, 'rest-start');
+  assert.notEqual(event.plan.id, 'a', '恢复后应避开上一次的计划');
+}
+
+// ── 重启恢复：休息中的剩余时间也要接上 ─────────────────────────────────────
+{
+  let now = 7_000_000;
+  const plan = {
+    id: 'x',
+    title: 'X',
+    totalSeconds: 600,
+    prepareSeconds: 10,
+    steps: [{ kind: 'rest', name: 'r', seconds: 590 }]
+  };
+  const clock2 = createClock({ now: () => now, workMs: 60_000, restMsFor: () => 600_000, plans: [plan] });
+  assert.equal(
+    clock2.restore({
+      version: 3,
+      phase: 'rest',
+      startedAt: now - 100_000,
+      deadline: now + 500_000,
+      workSeconds: 60,
+      plan,
+      restSeconds: 600,
+      lastPlanId: 'x',
+      doneCount: 1
+    }),
+    true
+  );
+  assert.equal(clock2.snapshot().phase, 'rest');
+  now += 499_999;
+  assert.equal(clock2.tick(), null);
+  now += 1;
+  assert.equal(clock2.tick()?.type, 'rest-end');
+}
+
+// ── 坏数据不恢复，也不破坏当前状态 ─────────────────────────────────────────
+{
+  const clock3 = createClock({ now: () => 1, workMs: 60_000, plans: PLANS });
+  assert.equal(clock3.restore(null), false);
+  assert.equal(clock3.restore({ phase: 'bogus' }), false);
+  assert.equal(clock3.restore({ phase: 'rest', startedAt: 0, deadline: 10 }), false, '休息必须有计划');
+  assert.equal(clock3.snapshot().phase, 'work');
+}
+
 // 显示用的字段
 assert.equal(typeof clock.snapshot().now, 'number');
 assert.equal(typeof clock.snapshot().deadline, 'number');

@@ -16,14 +16,17 @@ const settingsFile = path.join(os.tmpdir(), `dsh-clock-test-settings-${suffix}.j
 const plansFile = path.join(os.tmpdir(), `dsh-clock-test-plans-${suffix}.json`);
 const nightFile = path.join(os.tmpdir(), `dsh-clock-test-night-${suffix}.json`);
 const statsFile = path.join(os.tmpdir(), `dsh-clock-test-stats-${suffix}.json`);
+const clockFile = path.join(os.tmpdir(), `dsh-clock-test-clock-${suffix}.json`);
 fs.rmSync(settingsFile, { force: true });
 fs.rmSync(plansFile, { force: true });
 fs.rmSync(nightFile, { force: true });
 fs.rmSync(statsFile, { force: true });
+fs.rmSync(clockFile, { force: true });
 process.env.DSH_CLOCK_SETTINGS_FILE = settingsFile;
 process.env.DSH_CLOCK_PLANS_FILE = plansFile;
 process.env.DSH_CLOCK_NIGHT_FILE = nightFile;
 process.env.DSH_CLOCK_STATS_FILE = statsFile;
+process.env.DSH_CLOCK_CLOCK_FILE = clockFile;
 // 固定成 21:45，验证"启动时补最近一条 21:30"；测试里不真的叫醒窗口。
 process.env.DSH_CLOCK_NIGHT_NOW = '2026-10-18T21:45:00+08:00';
 process.env.DSH_CLOCK_NO_WAKE = '1';
@@ -116,6 +119,12 @@ assert.equal(result.json.state.stats.today.done, 0);
 assert.equal(result.json.state.stats.today.minutes, 0);
 assert.equal(result.json.state.stats.streak, 0);
 assert.equal(result.json.state.stats.last7.length, 7);
+
+// 计时快照已落盘（宿主重启时用来接续）
+assert.ok(fs.existsSync(clockFile), '计时快照应已写入');
+const savedClock = JSON.parse(fs.readFileSync(clockFile, 'utf8'));
+assert.equal(savedClock.version, 1);
+assert.equal(savedClock.state.phase, 'work');
 
 // 启动时固定为 21:45：应补一条最近的 21:30 夜间提醒（测试里不叫醒窗口）
 assert.equal(result.json.state.night.active, true);
@@ -317,5 +326,6 @@ fs.rmSync(settingsFile, { force: true });
 fs.rmSync(plansFile, { force: true });
 fs.rmSync(nightFile, { force: true });
 fs.rmSync(statsFile, { force: true });
+fs.rmSync(clockFile, { force: true });
 
-console.log('✅ host 接线：全部断言通过（含计划增删改 / 缩放设置 / 夜间提醒 / 统计 / 置顶小窗）');
+console.log('✅ host 接线：全部断言通过（含计划增删改 / 缩放设置 / 夜间提醒 / 统计 / 置顶小窗 / 计时快照）');

@@ -26,7 +26,8 @@
     "test:night": "node tools/test-night.mjs",
     "test:plans": "node tools/test-plans.mjs",
     "test:stats": "node tools/test-stats.mjs",
-    "test": "node tools/test-plans.mjs && node tools/test-clock.mjs && node tools/test-night.mjs && node tools/test-stats.mjs && node tools/test-host.mjs"
+    "test:resume": "node tools/test-resume.mjs",
+    "test": "node tools/test-plans.mjs && node tools/test-clock.mjs && node tools/test-night.mjs && node tools/test-stats.mjs && node tools/test-resume.mjs && node tools/test-host.mjs"
   },
   "exports": {
     ".": "./lib/index.js",
