@@ -1,7 +1,7 @@
 {
   "name": "dsh-clock",
-  "version": "1.4.0",
-  "description": "Move45clock · 健康钟：每工作 45 分钟弹出引导式休息卡片，内置 12 套 12～15 分钟坐/站计划；支持可视化编辑计划、弹窗放大、夜间提醒和可选的动作名语音播报。",
+  "version": "1.5.0",
+  "description": "Move45clock · 健康钟：每工作 45 分钟弹出引导式休息卡片，内置 12 套 12～15 分钟坐/站计划；支持可视化编辑计划、弹窗放大、今日统计与连续天数、到点置顶小窗、夜间提醒和可选的动作名语音播报。",
   "keywords": [
     "deepseek-harness",
     "dsh",
@@ -25,7 +25,8 @@
     "test:host": "node tools/test-host.mjs",
     "test:night": "node tools/test-night.mjs",
     "test:plans": "node tools/test-plans.mjs",
-    "test": "node tools/test-plans.mjs && node tools/test-clock.mjs && node tools/test-night.mjs && node tools/test-host.mjs"
+    "test:stats": "node tools/test-stats.mjs",
+    "test": "node tools/test-plans.mjs && node tools/test-clock.mjs && node tools/test-night.mjs && node tools/test-stats.mjs && node tools/test-host.mjs"
   },
   "exports": {
     ".": "./lib/index.js",

@@ -731,6 +731,42 @@
 - 或进入候选功能：统计 / 连续天数、系统通知 / 置顶小窗、语音音量 / 语速、中英文。
 - 加功能前先确认；改计划 / 业务逻辑前先问用户。
 
+## 2026-10-24 · 第 20 轮：统计 / 连续天数 + 到点置顶小窗（v1.5.0）
+
+### 做了什么
+
+1. **统计 / 连续天数**
+   - 新增 `lib/stats.js`：逐日 `{ done, minutes }`、连续天数、最近 7 天、400 天裁剪；
+   - 新增 `tools/test-stats.mjs`（空数据 / 连续 / 断档 / 跨月跨年 / 闰年 / 裁剪 / 坏数据）；
+   - 宿主新增 `stats.json`（可用 `DSH_CLOCK_STATS_FILE` 覆盖）；
+   - 只在 `rest-end`（倒计时自然走完）记一次；长按 `skipRest()` 不记；
+   - `/state` 增加 `stats` 汇总；`describe()` 增加第 4 个参数；
+   - 左下角面板：今天次数 / 分钟、连续天数、最近 7 天小柱；
+   - 完成卡片加一句「今天第 N 次 · 连续 D 天」。
+2. **到点置顶小窗**
+   - 新增 `tools/notify-window.ps1`：WPF 无边框圆角小窗，右下角、Topmost、
+     `ShowActivated=false`、25 秒自动关；按钮「打开健康钟 / 稍后」；
+   - 中文用 base64 传参，脚本保持纯 ASCII；宿主 `spawn` 启动，卸载时 kill；
+   - 设置新增 `notifyWindow`（默认 true）；`/notify` POST 预览（无视开关）；
+   - 设置页加勾选 +「预览小窗」；`npm test` 新增 stats、host 10 条路由。
+3. 版本 **1.5.0**（`package.json` + `CLIENT_VERSION`）；`npm test` 5 项全绿。
+
+### 发现 / 踩坑
+
+- Windows PowerShell 5.1 读 `.ps1` 按系统代码页；直接写中文会坏。用 base64 传参、
+  脚本纯 ASCII 最稳（和 AGENTS 的编码纪律一致）。
+- `ShowActivated=false` + `Topmost` 能在不抢焦点的情况下把窗口叠在最上面；
+  `Add_Loaded` 里按 `WorkArea` 贴右下角，避免被任务栏挡住。
+- 客户端 `Notification`（toast）在隐藏窗口会被 Chromium 节流，且 AUMID/权限不可靠，
+  所以小窗放在宿主侧（和夜间提醒一样）。
+- 统计按“本地日期”记；今天还没休息时连续天数从昨天往前数，避免半夜归零。
+
+### 下次从哪继续
+
+- 用户完全退出 DSH → 验收：设置页「预览小窗」/ 面板统计 / 完成一次休息 / 重启看数据；
+- 验收通过后：tag `v1.5.0` + GitHub Release（可选附件）+ push（网络允许时）；
+- 目录条目描述可补“统计 / 置顶小窗”，另提一个小 PR（可选）。
+
 ---
 
 <!--
