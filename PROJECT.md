@@ -275,7 +275,7 @@
    - `clock.json` 存绝对 deadline；同一天内退出 DSH 再打开，工作 / 休息接着走；
    - 跨天重置；关着时工作到点 → 打开直接进休息；休息在关着时结束 → 开新工作轮；
    - `test-clock` 加 restore 断言，新增 `test-resume`。
-4. ✅ 版本 1.5.0；`npm test` 6 项全绿（新增 `test-stats` / `test-resume`；host 10 条路由）。
+4. ✅ 版本 1.5.0；`npm test` 6 项全绿（新增 `test-stats` / `test-resume`；host 11 条路由）。
 
 **验收清单（完全退出 DSH 再打开）：**
 

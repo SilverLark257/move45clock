@@ -65,9 +65,9 @@ const fakeCtx = {
 
 apply(fakeCtx);
 
-assert.equal(routes.length, 10);
+assert.equal(routes.length, 11);
 const byPath = new Map(routes.map((item) => [item.path, item]));
-for (const suffix of ['/state', '/plans', '/settings', '/rest', '/skip', '/next', '/reset', '/wake', '/night', '/notify']) {
+for (const suffix of ['/state', '/plans', '/settings', '/rest', '/skip', '/next', '/reset', '/wake', '/night', '/notify', '/panel']) {
   assert.ok(byPath.has(`/dsh-clock/rpc${suffix}`), `missing route ${suffix}`);
 }
 
@@ -176,6 +176,14 @@ assert.equal(result.status, 200);
 assert.equal(result.json.ok, true);
 assert.ok(result.json.plan?.title, '预览应返回一个计划');
 assert.equal((await callPost('/notify', { action: 'bogus' })).status, 400);
+
+// 小窗里的「打开健康钟」：/panel 置一个 token，/state 带回去给客户端打开面板
+assert.equal((await call('/state')).json.state.panelRequest, 0);
+result = await callPost('/panel');
+assert.equal(result.status, 200);
+assert.equal(result.json.ok, true);
+assert.ok(result.json.panelRequest > 0);
+assert.equal((await call('/state')).json.state.panelRequest, result.json.panelRequest);
 
 // 非休息阶段的 skip / next 是 no-op
 result = await call('/skip', 'POST');

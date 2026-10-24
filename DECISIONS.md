@@ -502,6 +502,10 @@
   每次多一个 PowerShell 进程（启动约 1 秒），关闭时 kill。
 - **第 20 轮补丁**：按钮改为渐变胶囊 + 播放三角 + 悬停/按下反馈 + 柔和投影，
   窗口加圆角投影（用户反馈旧按钮粗糙）。
+- **点击修复（同日）**：WPF 的 `MouseLeftButtonUp` 是 Direct 事件，点在按钮里的
+  TextBlock 上时 Border 收不到；改用 `PreviewMouseLeftButtonUp`。
+  预览时点「打开健康钟」会 POST `/panel`：宿主从请求 `host` 拿到 base URL 传给小窗，
+  客户端看到新的 `panelRequest` 打开左下角面板，再调 wake 叫回 DSH。
 
 ---
 

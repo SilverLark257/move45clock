@@ -783,11 +783,19 @@
    - 渐变胶囊 + 播放三角、悬停放大 / 按下回弹、柔和投影；
    - 标题加 🐣 圆徽章；正文拆成计划名 / 概要 / 时长三层；窗口加圆角投影；
    - 中文仍 base64 传参，脚本纯 ASCII。
-3. `npm test` 6 项全绿；版本仍 1.5.0（还没打 tag）。
+3. **修复「打开健康钟」没反应**
+   - 原因：WPF 的 `MouseLeftButtonUp` 在点到按钮里的 TextBlock 时不会冒泡到 Border；
+     改用 `PreviewMouseLeftButtonUp`（隧道路由，先经过外框）；
+   - 点击时先 POST `/panel`（宿主从请求 `host` 得到 base URL 传给小窗），
+     客户端看到新的 `panelRequest` 打开左下角面板，再调 `wake-window.ps1` 把 DSH 叫回前台；
+   - 宿主新增 `/panel` 路由、`/state.panelRequest`，路由 11 条。
+4. `npm test` 6 项全绿；版本仍 1.5.0（还没打 tag）。
 
 ### 发现 / 踩坑
 
 - PowerShell 事件处理里不能依赖函数局部变量做闭包；按钮悬停用 `$this.Tag` 存颜色。
+- WPF 的 `MouseLeftButtonUp` 是 Direct 事件：点在子元素（TextBlock）上时外框收不到，
+  必须用 `PreviewMouseLeftButtonUp` 或冒泡的 `MouseUp`。
 - 计时快照必须存绝对 `deadline`，不能存“剩余秒数”，否则关机期间时间不走。
 - 接续规则要明确：跨天重置；休息在关着时结束不补统计（避免虚增）。
 

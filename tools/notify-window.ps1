@@ -10,6 +10,7 @@ param(
     [string]$OpenB64 = '',
     [string]$LaterB64 = '',
     [string]$WakeScript = '',
+    [string]$BaseUrl = '',
     [int]$Seconds = 25
 )
 
@@ -24,6 +25,16 @@ function ConvertFrom-B64Text {
     param([string]$Value)
     if ([string]::IsNullOrWhiteSpace($Value)) { return '' }
     return [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($Value))
+}
+
+function Write-Log {
+    param([string]$Message)
+    try {
+        $path = Join-Path $env:TEMP 'dsh-clock-notify.log'
+        Add-Content -Path $path -Value ("{0} {1}" -f (Get-Date -Format 'HH:mm:ss'), $Message) -Encoding UTF8
+    } catch {
+        # Logging must never break the reminder.
+    }
 }
 
 function New-Color {
@@ -79,6 +90,7 @@ $openText = ConvertFrom-B64Text $OpenB64
 $laterText = ConvertFrom-B64Text $LaterB64
 if ([string]::IsNullOrWhiteSpace($openText)) { $openText = 'Open DSH' }
 if ([string]::IsNullOrWhiteSpace($laterText)) { $laterText = 'Later' }
+Write-Log ("start base=" + $BaseUrl)
 
 # -- window shell ----------------------------------------------------------
 $window = New-Object System.Windows.Window
@@ -252,11 +264,11 @@ function New-Pill {
         $this.RenderTransform.ScaleX = 1
         $this.RenderTransform.ScaleY = 1
     })
-    $pill.Add_MouseLeftButtonDown({
+    $pill.Add_PreviewMouseLeftButtonDown({
         $this.RenderTransform.ScaleX = 0.97
         $this.RenderTransform.ScaleY = 0.97
     })
-    $pill.Add_MouseLeftButtonUp({
+    $pill.Add_PreviewMouseLeftButtonUp({
         $this.RenderTransform.ScaleX = 1.03
         $this.RenderTransform.ScaleY = 1.03
     })
@@ -266,21 +278,32 @@ function New-Pill {
 $openPill = New-Pill $openText $true
 $laterPill = New-Pill $laterText $false
 
-$openPill.Add_MouseLeftButtonUp({
+$openPill.Add_PreviewMouseLeftButtonUp({
+    Write-Log "open click"
+    if ($BaseUrl) {
+        try {
+            Invoke-RestMethod -Uri ($BaseUrl.TrimEnd('/') + '/dsh-clock/rpc/panel') -Method Post -TimeoutSec 3 -ErrorAction Stop | Out-Null
+            Write-Log "panel posted"
+        } catch {
+            Write-Log ("panel failed: " + $_.Exception.Message)
+        }
+    }
     try {
         if ($WakeScript -and (Test-Path -LiteralPath $WakeScript)) {
             $ps = Join-Path $PSHOME 'powershell.exe'
             if (-not (Test-Path -LiteralPath $ps)) { $ps = 'powershell.exe' }
-            $quoted = '"' + $WakeScript + '"'
-            Start-Process -FilePath $ps -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $quoted, '-Quiet') -WindowStyle Hidden | Out-Null
+            & $ps -NoProfile -ExecutionPolicy Bypass -File $WakeScript -Quiet | Out-Null
+            Write-Log ("wake done exit=" + $LASTEXITCODE)
         }
     } catch {
         # Opening DSH may fail (fullscreen game, policy); the window still closes.
+        Write-Log ("wake failed: " + $_.Exception.Message)
     }
     $window.Close()
 })
 
-$laterPill.Add_MouseLeftButtonUp({
+$laterPill.Add_PreviewMouseLeftButtonUp({
+    Write-Log "later click"
     $window.Close()
 })
 
@@ -305,4 +328,6 @@ $timer.Add_Tick({
 })
 $timer.Start()
 
+Write-Log "shown"
 [void]$window.ShowDialog()
+Write-Log "closed"

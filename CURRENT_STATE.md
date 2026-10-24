@@ -30,7 +30,7 @@
 
 - 版本 **1.5.0**（`package.json` + `CLIENT_VERSION`）；
 - `npm test` 6 项全绿（新增 `test-stats` / `test-resume`）；
-- `test-host`：10 条路由、`notifyWindow` 开关、`/notify` 预览、`/state.stats` 形状、快照落盘；
+- `test-host`：11 条路由、`notifyWindow` 开关、`/notify` 预览、`/panel` 面板请求、`/state.stats` 形状、快照落盘；
 - **待用户**：完全退出 DSH 再打开 → 设置页「预览小窗」→ 试做 / 等一次休息 →
   重启看统计与倒计时是否接续。
 
@@ -42,6 +42,10 @@
   新增 `tools/test-resume.mjs`（预写快照，验证 `/state` 接上 deadline / 完成次数）；
 - **小窗按钮重做**：渐变胶囊 + 播放三角 + 悬停/按下缩放 + 柔和阴影；
   标题加 🐣 圆形徽章，正文分成「计划名 / 概要 / 时长」三层；窗口加投影；
+- **「打开健康钟」修复**：WPF 的 `MouseLeftButtonUp` 在点到按钮里的文字时不会冒泡到外框，
+  改用 `PreviewMouseLeftButtonUp`；点击时先 POST `/panel`（宿主把请求的 host 传给小窗），
+  客户端看到新的 `panelRequest` 就打开左下角面板，再调 wake 叫回 DSH；
+- 宿主新增 `/panel` 路由与 `/state.panelRequest`，路由 11 条。
 
 ---
 
