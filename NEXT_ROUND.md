@@ -12,25 +12,26 @@
 
 ## 当前状态（2026-10-24）
 
-- 版本 **1.5.0**（已验收）；内部包名 **`dsh-clock`**；公开仓库 **`SilverLark257/move45clock`**；
-  GitHub `main` 还是 **`98ad4fe`**（本地领先 v1.5.0 三个提交，待 push）。
+- 版本 **1.5.0**（已验收并发布）；内部包名 **`dsh-clock`**；公开仓库 **`SilverLark257/move45clock`**；
+  GitHub `main` = **`d076597`**，tag `v1.5.0`，Release `v1.5.0` 已发布。
 - v1.5.0 新增：**今日统计 / 连续天数**（`stats.json` + 面板）、
   **到点置顶小窗**（可开关 / 预览；点「打开健康钟」会叫回 DSH 并打开面板）、
   **重启接续**（`clock.json`，同一天内退出再打开接着上次的倒计时）。
 - `npm test` 6 项全绿；`test-host` 11 条路由（含 `/panel`）；安装状态 active（`file:` junction）。
-- GitHub 发布：topic 已加；Release `v1.4.0`；目录 PR #8227 已合并，市场可搜到 Move45clock。
+- GitHub 发布：topic 已加；Release `v1.4.0` + `v1.5.0`；目录 PR #8227 已合并，
+  市场可搜到 Move45clock（指向仓库 main，新装会拿到 1.5.0）。
 - **验收记录（2026-10-24）**：统计面板 / 置顶小窗（打开健康钟）/ 重启接续均通过。
 - **不发 npm**；公开信息里不写真实姓名 / 邮箱 / 住址 / 本机路径。
 
-## 下一轮第一件事（发布 v1.5.0）
+## 下一轮第一件事（选候选功能）
 
-1. `git push origin main` + `git push origin v1.5.0`
-   （本机 git 连 GitHub 不稳，失败就让用户用 GitHub Desktop 推）；
-2. GitHub Releases 建 **v1.5.0**（target `main`；附件可选 `npm pack` 的 tgz）；
-3. 核对远端 `main` 的 `package.json` 是 `1.5.0`；
-4. 可选：目录 PR 更新描述（加统计 / 置顶小窗 / 重启接续），只改自己的
-   `data/plugins/SilverLark257__move45clock.yml`；
-5. 发布完再进候选功能。
+v1.5.0 已发布：main `d076597` / tag `v1.5.0` / Release `v1.5.0`；
+远端 `package.json` 已是 `1.5.0`；市场条目指向仓库，不需要改版本。
+
+1. 先让用户在候选中挑一个（语音音量 / 语速、中英文、提示音开关、独占全屏兜底）；
+2. 改前先用大白话讲清楚“会看到什么”，改完 `npm test` + 重启验收；
+3. 版本按改动大小升 `1.5.x` 或 `1.6.0`；
+4. 可选：目录条目描述补“统计 / 置顶小窗 / 重启接续”，另提一个小 PR。
 
 ## 之后候选
 
