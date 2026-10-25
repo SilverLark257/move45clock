@@ -133,13 +133,20 @@ result = await callPost('/night', { action: 'dismiss' });
 assert.equal(result.status, 200);
 assert.equal(result.json.state.night.active, false);
 
-// GET /plans：默认 12 套内置、全部启用
+// GET /plans：默认 16 套内置、全部启用、没有已删除的
 result = await call('/plans');
 assert.equal(result.json.ok, true);
-assert.equal(result.json.plans.length, 12);
-assert.equal(result.json.builtinCount, 12);
+assert.equal(result.json.plans.length, 16);
+assert.equal(result.json.builtinCount, 16);
 assert.equal(result.json.customCount, 0);
-assert.ok(result.json.plans.every((plan) => plan.builtin === true && plan.disabled === false));
+assert.equal(result.json.visibleCount, 16);
+assert.equal(result.json.hiddenCount, 0);
+assert.ok(
+  result.json.plans.every(
+    (plan) => plan.builtin === true && plan.disabled === false && plan.hidden === false
+  )
+);
+assert.equal(result.json.plans.filter((plan) => plan.category === '家务休闲').length, 4);
 
 // GET /settings（默认值）
 result = await call('/settings');
@@ -243,7 +250,7 @@ const customDraft = {
 result = await callPost('/plans', { op: 'save', plan: customDraft });
 assert.equal(result.status, 200);
 assert.equal(result.json.ok, true);
-assert.equal(result.json.plans.length, 13);
+assert.equal(result.json.plans.length, 17);
 assert.equal(result.json.saved.totalSeconds, 370);
 assert.equal(result.json.saved.title, '测试计划');
 assert.ok(result.json.saved.id.startsWith('my-'), '新计划应自动生成 my- 开头的 id');
@@ -294,15 +301,53 @@ assert.equal(restored.disabled, false);
 // 删除自己建的
 result = await callPost('/plans', { op: 'delete', id: customId });
 assert.equal(result.status, 200);
-assert.equal(result.json.plans.length, 12);
+assert.equal(result.json.plans.length, 16);
 assert.equal(result.json.plans.some((plan) => plan.id === customId), false);
 
-// 至少保留 1 套启用：先停到只剩 1 套，再停最后一套 → 400
-const enabledNow = result.json.plans.filter((plan) => !plan.disabled);
+// ── 删除内置计划（软删除）：从列表和随机池里消失，但可以恢复 ──────────────
+result = await callPost('/plans', { op: 'delete', id: 'chore-wipe' });
+assert.equal(result.status, 200);
+assert.equal(result.json.plans.find((plan) => plan.id === 'chore-wipe').hidden, true);
+const savedLibrary = JSON.parse(fs.readFileSync(plansFile, 'utf8'));
+assert.ok(savedLibrary.hidden.includes('chore-wipe'), '删除内置计划要写进 plans.json 的 hidden');
+result = await call('/plans');
+assert.equal(result.json.visibleCount, 15);
+assert.equal(result.json.hiddenCount, 1);
+
+// 已删除的计划不能「试做」，也不能再「停用」
+result = await callPost('/rest', { planId: 'chore-wipe' });
+assert.equal(result.json.ok, false);
+assert.match(result.json.error, /已删除/);
+result = await callPost('/plans', { op: 'disable', id: 'chore-wipe' });
+assert.equal(result.status, 400);
+assert.match(result.json.error, /已删除/);
+
+// 恢复单套
+result = await callPost('/plans', { op: 'restore-hidden', id: 'chore-wipe' });
+assert.equal(result.status, 200);
+assert.equal(result.json.plans.find((plan) => plan.id === 'chore-wipe').hidden, false);
+result = await call('/plans');
+assert.equal(result.json.visibleCount, 16);
+
+// 删除多套后「全部恢复」
+await callPost('/plans', { op: 'delete', id: 'chore-mop' });
+await callPost('/plans', { op: 'delete', id: 'chore-laundry' });
+result = await callPost('/plans', { op: 'restore-all-hidden' });
+assert.equal(result.status, 200);
+assert.equal(result.json.plans.find((plan) => plan.id === 'chore-mop').hidden, false);
+assert.equal(result.json.plans.find((plan) => plan.id === 'chore-laundry').hidden, false);
+result = await call('/plans');
+assert.equal(result.json.hiddenCount, 0);
+
+// 至少保留 1 套计划：先停到只剩 1 套，再试图删除 / 停用最后一套 → 400
+const enabledNow = result.json.plans.filter((plan) => !plan.disabled && !plan.hidden);
 for (const plan of enabledNow.slice(1)) {
   const disabled = await callPost('/plans', { op: 'disable', id: plan.id });
   assert.equal(disabled.status, 200);
 }
+result = await callPost('/plans', { op: 'delete', id: enabledNow[0].id });
+assert.equal(result.status, 400);
+assert.match(result.json.error, /至少要保留 1 套/);
 result = await callPost('/plans', { op: 'disable', id: enabledNow[0].id });
 assert.equal(result.status, 400);
 assert.match(result.json.error, /至少要保留 1 套/);
@@ -310,8 +355,14 @@ assert.match(result.json.error, /至少要保留 1 套/);
 // 全部恢复内置
 result = await callPost('/plans', { op: 'reset-all' });
 assert.equal(result.status, 200);
-assert.equal(result.json.plans.length, 12);
-assert.ok(result.json.plans.every((plan) => plan.overridden === false && plan.disabled === false));
+assert.equal(result.json.plans.length, 16);
+result = await call('/plans');
+assert.equal(result.json.hiddenCount, 0);
+assert.ok(
+  result.json.plans.every(
+    (plan) => plan.overridden === false && plan.disabled === false && plan.hidden === false
+  )
+);
 
 // 未知操作 → 400
 result = await callPost('/plans', { op: 'nonsense' });
@@ -336,4 +387,6 @@ fs.rmSync(nightFile, { force: true });
 fs.rmSync(statsFile, { force: true });
 fs.rmSync(clockFile, { force: true });
 
-console.log('✅ host 接线：全部断言通过（含计划增删改 / 缩放设置 / 夜间提醒 / 统计 / 置顶小窗 / 计时快照）');
+console.log(
+  '✅ host 接线：全部断言通过（含计划增删改 / 内置计划删除与恢复 / 缩放设置 / 夜间提醒 / 统计 / 置顶小窗 / 计时快照）'
+);

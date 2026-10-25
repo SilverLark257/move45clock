@@ -1,12 +1,24 @@
 /**
- * 计划库体检：12 套、时长 12～15 分钟、字段完整。
+ * 计划库体检：16 套（12 套运动 + 4 套家务休闲）、时长 12～15 分钟、字段完整。
  * 运行：node tools/test-plans.mjs
  */
 import assert from 'node:assert/strict';
 import { PLANS, normalizeUserPlan } from '../lib/plans.js';
 
 assert.ok(Array.isArray(PLANS), 'PLANS 必须是数组');
-assert.equal(PLANS.length, 12, '计划库必须有 12 套');
+assert.equal(PLANS.length, 16, '计划库必须有 16 套（12 运动 + 4 家务休闲）');
+
+const choreIds = ['chore-wipe', 'chore-mop', 'chore-clothes', 'chore-laundry'];
+const chores = PLANS.filter((plan) => plan.category === '家务休闲');
+assert.equal(chores.length, 4, '家务休闲必须正好 4 套');
+for (const id of choreIds) {
+  assert.ok(PLANS.some((plan) => plan.id === id), `缺少家务休闲计划：${id}`);
+}
+assert.equal(
+  PLANS.filter((plan) => !plan.category || plan.category === '运动').length,
+  12,
+  '除 4 套家务休闲外，其余 12 套应是运动计划'
+);
 
 const ids = new Set();
 for (const plan of PLANS) {
@@ -95,5 +107,10 @@ assert.throws(
 const builtinNormalized = normalizeUserPlan(PLANS[0]);
 assert.equal(builtinNormalized.id, PLANS[0].id);
 assert.equal(builtinNormalized.totalSeconds, PLANS[0].totalSeconds);
+assert.equal(builtinNormalized.category, '运动', '普通计划默认分类是「运动」');
 
-console.log('✅ plans: 12 套计划全部合法（12～15 分钟），用户计划校验通过');
+const choreNormalized = normalizeUserPlan(PLANS.find((plan) => plan.category === '家务休闲'));
+assert.equal(choreNormalized.category, '家务休闲', '编辑家务计划时要保留分类');
+assert.equal(normalizeUserPlan({ ...draft, category: '家务休闲' }).category, '家务休闲');
+
+console.log('✅ plans: 16 套计划全部合法（12 套运动 + 4 套家务休闲，12～15 分钟），用户计划校验通过');
