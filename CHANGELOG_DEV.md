@@ -855,8 +855,10 @@
 
 - **待用户完全退出 DSH 再打开验收**：16 套、4 个绿色家务徽章、删除/恢复、
   最后一套保护、试做一套家务计划。
-- 验收通过后：`git add` / commit / tag `v1.6.0` / push main + tag / GitHub Release；
-  市场条目指向仓库，不需要改版本。
+- 本地已提交 **`ca9e992`**、tag **`v1.6.0`**；远端还没推：
+  命令行拿不到 SilverLark257 的 HTTPS 凭据，SSH 钥匙属于 `lidochka77`、无推送权限；
+  用 GitHub Desktop 点 **Push origin** 即可，之后补 GitHub Release。
+- 市场条目指向仓库，不需要改版本。
 - 之后候选：语音音量 / 语速、中英文、提示音开关 / 音量、独占全屏兜底。
 
 ---

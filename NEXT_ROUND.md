@@ -12,7 +12,10 @@
 
 ## 当前状态（2026-10-25）
 
-- 代码版本 **1.6.0**（**待用户完全重启 DSH 验收**，还没提交 / 打 tag / 推送）；
+- 代码版本 **1.6.0**（**待用户完全重启 DSH 验收**）；
+  本地已提交 **`ca9e992`**、tag **`v1.6.0`**；**远端还没推**——
+  本机命令行拿不到 SilverLark257 的 HTTPS 凭据，SSH 钥匙属于 `lidochka77`、没有推送权限；
+  最快用 GitHub Desktop（已开着）打开 `move45clock` → 点 **Push origin**；
   内部包名 **`dsh-clock`**；公开仓库 **`SilverLark257/move45clock`**；
   GitHub `main` 仍是 `d076597`（v1.5.0），tag / Release 最新是 `v1.5.0`。
 - v1.6.0 新增：
