@@ -1,7 +1,7 @@
 {
   "name": "dsh-clock",
-  "version": "1.6.0",
-  "description": "Move45clock · 健康钟：每工作 45 分钟弹出引导式休息卡片，内置 16 套 12～15 分钟计划（12 套运动 + 4 套家务休闲）；支持删除/恢复计划、可视化编辑、弹窗放大、今日统计与连续天数、到点置顶小窗、夜间提醒和可选的动作名语音播报。",
+  "version": "1.7.0",
+  "description": "Move45clock · 健康钟：每工作 45 分钟弹出引导式休息卡片，内置 22 套计划（12 套运动 + 4 套家务休闲 + 6 套 3～5 分钟短运动）；支持「你偏爱的计划类」（纯运动 / 运动+家务 / 短短短长）、删除/恢复计划、可视化编辑、弹窗放大、今日统计与连续天数、到点置顶小窗、夜间提醒和可选的动作名语音播报。",
   "keywords": [
     "deepseek-harness",
     "dsh",
@@ -27,7 +27,8 @@
     "test:plans": "node tools/test-plans.mjs",
     "test:stats": "node tools/test-stats.mjs",
     "test:resume": "node tools/test-resume.mjs",
-    "test": "node tools/test-plans.mjs && node tools/test-clock.mjs && node tools/test-night.mjs && node tools/test-stats.mjs && node tools/test-resume.mjs && node tools/test-host.mjs"
+    "test:client-css": "node tools/test-client-css.mjs",
+    "test": "node tools/test-plans.mjs && node tools/test-clock.mjs && node tools/test-night.mjs && node tools/test-stats.mjs && node tools/test-resume.mjs && node tools/test-host.mjs && node tools/test-client-css.mjs"
   },
   "exports": {
     ".": "./lib/index.js",
@@ -52,7 +53,8 @@
     "compatibility": {
       "dshReleases": {
         "0.2.0-rc.2": "compatible",
-        "0.2.1-rc.2": "compatible"
+        "0.2.1-rc.2": "compatible",
+        "0.2.1-rc.5": "compatible"
       }
     }
   },

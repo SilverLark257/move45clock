@@ -30,7 +30,7 @@ process.env.DSH_CLOCK_CLOCK_FILE = clockFile;
 process.env.DSH_CLOCK_NO_WAKE = '1';
 process.env.DSH_CLOCK_NIGHT_NOW = '2026-10-18T10:00:00+08:00'; // 不在夜间提醒时段
 
-// 预写：今天、工作阶段、还剩 2 分钟、今天已完成 2 次
+// 预写：今天、工作阶段、还剩 2 分钟、今天已完成 2 次、已经在短短短长周期的第 2 次短休息之后
 const now = Date.now();
 const deadline = now + 120_000;
 const savedState = {
@@ -43,7 +43,10 @@ const savedState = {
   restSeconds: 0,
   lastPlanId: null,
   doneCount: 2,
-  skipped: false
+  skipped: false,
+  shortStreak: 2,
+  breakKind: null,
+  cycleCounted: false
 };
 fs.writeFileSync(
   clockFile,
@@ -110,12 +113,19 @@ assert.equal(result.json.state.phase, 'work');
 assert.equal(result.json.state.workSeconds, 180, '应保留上次的 3 分钟工作轮次');
 assert.equal(result.json.state.deadline, deadline, 'deadline 应原样接上，而不是重新算 45 分钟');
 assert.equal(result.json.state.doneCount, 2, '今天完成次数应接上');
+assert.equal(result.json.state.planMode, 'short-long', '默认计划类是短短短长（老设置迁移）');
+assert.equal(result.json.state.shortStreak, 2, '短短短长周期计数应接上');
+assert.equal(result.json.state.nextBreakKind, 'short', 'streak=2，下一次还是短休息');
+assert.equal(result.json.state.breakKind, null, '工作阶段 breakKind 应为 null');
+assert.equal(result.json.state.cycleCounted, false);
 
 // 落盘文件应被规范化后写回
 const onDisk = JSON.parse(fs.readFileSync(clockFile, 'utf8'));
 assert.equal(onDisk.version, 1);
 assert.equal(onDisk.day, localDayKey());
 assert.equal(onDisk.state.deadline, deadline);
+assert.equal(onDisk.state.shortStreak, 2);
+assert.equal(onDisk.state.planMode, 'short-long');
 
 // 「重新计时」后快照更新为新的工作轮
 result = await call('/reset', 'POST');
@@ -135,4 +145,6 @@ for (const file of [settingsFile, plansFile, nightFile, statsFile, clockFile]) {
   fs.rmSync(file, { force: true });
 }
 
-console.log('✅ resume: 同一天重启能接着上次的倒计时（工作 / 剩余时间 / 完成次数）');
+console.log(
+  '✅ resume: 同一天重启能接着上次的倒计时（工作 / 剩余时间 / 完成次数 / 短短短长周期）'
+);

@@ -6,43 +6,47 @@
 
 1. `README.md`（用户版）
 2. `DEVELOPMENT.md`（开发版）
-3. `CURRENT_STATE.md`
-4. `DECISIONS.md`（重点 ADR-014 / 024 / 025 / 026 / 027 / 028 / 029）
-5. `CHANGELOG_DEV.md`（第 20 轮 + 补丁）
+3. `CURRENT_STATE.md`（第 22 轮 + 验收清单）
+4. `DECISIONS.md`（重点 ADR-014 / 024～033）
+5. `CHANGELOG_DEV.md`（第 22 轮）
 
-## 当前状态（2026-10-25）
+## 当前状态（2026-10-30）
 
-- 代码版本 **1.6.0**（**待用户完全重启 DSH 验收**）；
-  本地已提交 **`ca9e992`**、tag **`v1.6.0`**；**远端还没推**——
-  本机命令行拿不到 SilverLark257 的 HTTPS 凭据，SSH 钥匙属于 `lidochka77`、没有推送权限；
-  最快用 GitHub Desktop（已开着）打开 `move45clock` → 点 **Push origin**；
-  内部包名 **`dsh-clock`**；公开仓库 **`SilverLark257/move45clock`**；
-  GitHub `main` 仍是 `d076597`（v1.5.0），tag / Release 最新是 `v1.5.0`。
-- v1.6.0 新增：
-  1. **计划删除 / 恢复**：每套计划右侧常驻「删除」；内置计划软删除（`plans.json` 的 `hidden`），
-     列表和随机池消失，计划库下方「已删除的内置计划」可单套 / 全部恢复；
-     自己建的计划真删；至少保留 1 套可见、启用中的计划；
-  2. **4 套「家务休闲」**：擦桌子 12.0 / 拖地 12.6 / 整理衣服 12.0 / 洗衣 12.6 分钟，
-     `category = 家务休闲`，绿色徽章，和运动计划一起随机。
-- 内置计划从 12 套扩到 **16 套**；`npm test` 6 项全绿；
-  `test-host` 11 条路由；安装状态 active（`file:` junction）。
-- **旧验收（2026-10-24）**：统计面板 / 置顶小窗 / 重启接续均通过。
+- 代码版本 **1.7.0**（**待用户完全重启 DSH 验收**）；内部包名 **`dsh-clock`**；
+  公开仓库 **SilverLark257/move45clock**（`main` 仍是 v1.6.0 验收前的提交，v1.7.0 还没推）。
+- v1.7.0 新增：
+  1. **弹窗防 Codex UI 玻璃化**：`lib/client.js` 的 `clockCss()` 给健康钟自己的表面
+     （卡片 / 完成卡 / 夜间卡 / 面板 / 幕布）的 background / border / border-radius /
+     box-shadow / backdrop-filter / animation 加 `!important`，抵御 Codex UI 2.0.5
+     玻璃主题对所有 `role="dialog"` 弹窗的无差别覆盖；`codex-ui-theme` 子插件已重新启用。
+  2. **「你偏爱的计划类」三选一**：`settings.json` 的 `planMode` =
+     `exercise` 纯运动 / `mixed` 运动+家务 / `short-long` 短短短长；默认 `short-long`。
+     `short-long` 下休息时长强制跟随计划（固定分钟不生效）。
+  3. **6 套 3～5 分钟短运动**（`category = 短运动`）：`short-neck` / `short-squat` /
+     `short-march` / `short-stretch` / `short-wall` / `short-walk`；内置计划 16→22 套；
+     `normalizeUserPlan` 按分类分档（短运动 3～5 分钟，其它 5～30 分钟）。
+  4. **短短短长周期**：`clock-core.js` 的 `shortStreak` 0→1→2→3→0，第 4 次抽长计划；
+     跳过也推进、试做不推进；`clock.json` 接续；`/state` 暴露 `planMode/shortStreak/
+     nextBreakKind/breakKind`。
+- `npm test` 7 项全绿（含 `test-client-css`：防止防玻璃化的 `!important` 被以后改样式时弄丢）；
+  `test-host` 仍是 11 条路由；安装状态 active（`file:` junction）。
 - **不发 npm**；公开信息里不写真实姓名 / 邮箱 / 住址 / 本机路径。
 
-## 下一轮第一件事（验收 v1.6.0 + 发布）
+## 下一轮第一件事（验收 v1.7.0 + 发布）
 
 1. 让用户**完全退出 DSH 再打开**（只刷新页面不够，宿主还是旧代码）；
-2. 按 `CURRENT_STATE.md` 的「第 21 轮验收（v1.6.0）」逐条验收：
-   16 套 / 4 个绿色家务徽章 / 删除 / 恢复 / 全部恢复 / 自建真删 / 最后一套保护 / 试做家务 / 重启后还在；
-3. 通过后：`git add` → commit → tag `v1.6.0` → push main + tag → GitHub Release（附件可选）；
-4. 市场条目指向仓库，不需要改版本；可选：目录描述补“家务休闲 / 计划删除”。
+2. 按 `CURRENT_STATE.md` 的「第 22 轮验收（v1.7.0）」逐条验收：
+   计划类单选默认短短短长、计划库 22 套 / 短运动徽章、第一次休息是 3～5 分钟短运动、
+   准备页第 1/4 次、跳过推进、玻璃主题下弹窗不透明、重启后周期接续、切换计划类生效；
+3. 通过后：`git add` → commit → tag `v1.7.0` → push main + tag → GitHub Release（附件可选）；
+4. 市场条目指向仓库，不需要改版本。
 
 ## 之后候选
 
 - 语音音量 / 语速；
 - 中英文（ADR-008 一直欠着）；
 - 提示音开关 / 音量；
-- 独占全屏游戏的兜底（系统级限制，需评估系统通知）；
+- 按「计划类」实际体验微调（短休息 3～5 分钟够不够、长休息要不要也变）；
 - 按分类筛选计划（TBD-7，计划继续变多再做）。
 
 ## 绝对不要
@@ -52,13 +56,21 @@
 - **不要在公开 README / 文件写真实姓名、邮箱、住址、本机路径**；网页提交前先确认
   GitHub 已开 “Keep my email addresses private”。
 - 不要手动改 profile 的 `dsh.profile.bundles`；需要装 / 卸用 `node tools/install.js`，先备份。
+- **不要为了“点一下设置就恢复”的坑去改 Codex UI**：那是第三方插件，
+  健康钟只做自己的防御（ADR-033）。
 
 ## 已知坑
 
 - 本机 git 连 `github.com:443` 不稳定；写操作只能用户点，只读状态用 API / raw / jsDelivr。
 - PowerShell 5.1 的 `.ps1` 按系统代码页读，中文一律用 base64 传参、脚本保持纯 ASCII。
 - DSH 宿主改动必须**完全退出再打开**；客户端改动可 Ctrl+F5。
-  v1.6.0 同时改了宿主和客户端，验收必须完全重启。
+  v1.7.0 同时改了宿主和客户端，验收必须完全重启。
+- **Codex UI 玻璃主题**：设置页「排版模式 / 材质预设 / 微光」三个控件在代码里写死
+  `enabled: true`，点一下就会重新开玻璃；真正的开关是
+  `localStorage['codex-ui.glass.enabled']`（界面上没有）。健康钟弹窗现在有 `!important`
+  防护，玻璃开着也不会被带透明。
+- 短运动计划只在 `short-long` 模式里抽；别的模式会忽略它们（不是 bug）。
+- 短短短长：跳过也推进周期、试做不推进；`short-long` 下固定休息分钟被强制 0。
 - 内置计划删除是 `plans.json` 的 `hidden` 软删除，不是从 `lib/plans.js` 真删；
   「恢复全部内置」会清空 `hidden`，也会清掉自建和改动。
 - 计划库至少有 1 套**可见且启用**的计划；最后一套删不掉 / 停不掉。

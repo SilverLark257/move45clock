@@ -22,6 +22,17 @@ fs.rmSync(plansFile, { force: true });
 fs.rmSync(nightFile, { force: true });
 fs.rmSync(statsFile, { force: true });
 fs.rmSync(clockFile, { force: true });
+// 预写一份 v1.6.0 的老设置（没有 planMode）：启动时应迁移成默认的 short-long，
+// 并且因为 short-long 强制 restMinutes=0，老文件里的固定 15 分钟不该留到新设置里。
+fs.writeFileSync(
+  settingsFile,
+  JSON.stringify(
+    { workMinutes: 45, restMinutes: 15, cardScale: 1.5, nightEnabled: true, notifyWindow: true },
+    null,
+    2
+  ),
+  'utf8'
+);
 process.env.DSH_CLOCK_SETTINGS_FILE = settingsFile;
 process.env.DSH_CLOCK_PLANS_FILE = plansFile;
 process.env.DSH_CLOCK_NIGHT_FILE = nightFile;
@@ -114,6 +125,10 @@ assert.equal(result.json.state.phase, 'work');
 assert.equal(result.json.state.devMode, false);
 assert.equal(result.json.state.workSeconds, 2700);
 assert.equal(result.json.state.settings.cardScale, 1.5);
+assert.equal(result.json.state.planMode, 'short-long', '默认计划类是短短短长');
+assert.equal(result.json.state.settings.planMode, 'short-long');
+assert.equal(result.json.state.shortStreak, 0);
+assert.equal(result.json.state.nextBreakKind, 'short');
 assert.equal(typeof result.json.state.deadline, 'number');
 assert.equal(result.json.state.stats.today.done, 0);
 assert.equal(result.json.state.stats.today.minutes, 0);
@@ -133,13 +148,13 @@ result = await callPost('/night', { action: 'dismiss' });
 assert.equal(result.status, 200);
 assert.equal(result.json.state.night.active, false);
 
-// GET /plans：默认 16 套内置、全部启用、没有已删除的
+// GET /plans：默认 22 套内置、全部启用、没有已删除的
 result = await call('/plans');
 assert.equal(result.json.ok, true);
-assert.equal(result.json.plans.length, 16);
-assert.equal(result.json.builtinCount, 16);
+assert.equal(result.json.plans.length, 22);
+assert.equal(result.json.builtinCount, 22);
 assert.equal(result.json.customCount, 0);
-assert.equal(result.json.visibleCount, 16);
+assert.equal(result.json.visibleCount, 22);
 assert.equal(result.json.hiddenCount, 0);
 assert.ok(
   result.json.plans.every(
@@ -147,14 +162,16 @@ assert.ok(
   )
 );
 assert.equal(result.json.plans.filter((plan) => plan.category === '家务休闲').length, 4);
+assert.equal(result.json.plans.filter((plan) => plan.category === '短运动').length, 6);
 
-// GET /settings（默认值）
+// GET /settings（默认值；老设置文件没有 planMode 时要迁移成 short-long）
 result = await call('/settings');
 assert.equal(result.json.settings.workMinutes, 45);
-assert.equal(result.json.settings.restMinutes, 0);
+assert.equal(result.json.settings.restMinutes, 0, 'short-long 会强制 restMinutes=0');
 assert.equal(result.json.settings.cardScale, 1.5);
 assert.equal(result.json.settings.nightEnabled, true);
 assert.equal(result.json.settings.notifyWindow, true);
+assert.equal(result.json.settings.planMode, 'short-long', '没有 planMode 的老设置按默认迁移');
 
 // 夜间提醒：预览 / 开关 / 未知操作
 result = await callPost('/night', { action: 'preview', slotId: '22:30' });
@@ -205,12 +222,37 @@ result = await call('/reset', 'POST');
 assert.equal(result.json.ok, true);
 assert.equal(result.json.state.phase, 'work');
 
-// PUT /settings：正常保存
-result = await callPut('/settings', { workMinutes: 25, restMinutes: 15 });
+// ── /rest 自动抽计划：默认短短短长，第一次休息应是 3～5 分钟短运动 ────────
+result = await callPost('/rest', {});
+assert.equal(result.status, 200);
+assert.equal(result.json.ok, true);
+assert.equal(result.json.state.phase, 'rest');
+assert.equal(result.json.state.planMode, 'short-long');
+assert.equal(result.json.state.breakKind, 'short', '短短短长第一次休息是短休息');
+assert.equal(result.json.state.plan.category, '短运动', '第一次自动休息抽短运动计划');
+assert.ok(
+  result.json.state.restSeconds >= 180 && result.json.state.restSeconds <= 300,
+  '短休息时长应在 3～5 分钟'
+);
+assert.equal(result.json.state.cycleCounted, true, '自动抽的休息计入周期');
+
+// 长按跳过也推进周期：跳过一次后 shortStreak=1，下一次还是短休息
+result = await call('/skip', 'POST');
+assert.equal(result.json.ok, true);
+assert.equal(result.json.state.shortStreak, 1, '跳过也推进短短短长周期');
+assert.equal(result.json.state.nextBreakKind, 'short');
+result = await call('/next', 'POST');
+assert.equal(result.json.ok, true);
+assert.equal(result.json.state.phase, 'work');
+
+// PUT /settings：正常保存（顺便从短短短长切到运动+家务，后面固定休息时长的老断言才有意义）
+result = await callPut('/settings', { workMinutes: 25, restMinutes: 15, planMode: 'mixed' });
 assert.equal(result.status, 200);
 assert.equal(result.json.settings.workMinutes, 25);
 assert.equal(result.json.settings.restMinutes, 15);
+assert.equal(result.json.settings.planMode, 'mixed');
 assert.equal(result.json.settings.cardScale, 1.5);
+assert.equal(result.json.state.planMode, 'mixed');
 // 当前这一轮不被打断（仍按旧的 45 分钟），设置里的 25 分钟下一轮生效
 assert.equal(result.json.state.workSeconds, 2700);
 assert.equal(result.json.state.settings.workMinutes, 25);
@@ -232,6 +274,27 @@ assert.equal(result.json.settings.workMinutes, 120);
 assert.equal(result.json.settings.restMinutes, 5);
 assert.equal(result.json.settings.cardScale, 1.2);
 
+// ── planMode：非法值回落默认；short-long 强制 restMinutes=0；其它模式保留 ──
+result = await callPut('/settings', { planMode: 'not-a-mode' });
+assert.equal(result.json.settings.planMode, 'short-long', '非法 planMode 回落默认');
+assert.equal(result.json.settings.restMinutes, 0, 'short-long 下固定休息时长强制为 0');
+assert.equal(result.json.state.planMode, 'short-long', '计时器也要同步成 short-long');
+
+result = await callPut('/settings', { planMode: 'exercise' });
+assert.equal(result.json.settings.planMode, 'exercise');
+assert.equal(result.json.settings.restMinutes, 0, 'exercise 模式沿用上一次的 0');
+assert.equal(result.json.state.planMode, 'exercise');
+
+result = await callPut('/settings', { planMode: 'exercise', restMinutes: 20 });
+assert.equal(result.json.settings.planMode, 'exercise');
+assert.equal(result.json.settings.restMinutes, 20, '其它模式保留固定休息时长');
+
+result = await callPut('/settings', { planMode: 'short-long', restMinutes: 20 });
+assert.equal(result.json.settings.planMode, 'short-long');
+assert.equal(result.json.settings.restMinutes, 0, 'short-long 下传 20 分钟也会被强制成 0');
+assert.equal(result.json.settings.workMinutes, 120, '其它字段保持原值');
+assert.equal(result.json.state.planMode, 'short-long');
+
 // ── 计划编辑器：新建一个自己的计划 ─────────────────────────────────────────
 const customDraft = {
   emoji: '🧪',
@@ -250,7 +313,7 @@ const customDraft = {
 result = await callPost('/plans', { op: 'save', plan: customDraft });
 assert.equal(result.status, 200);
 assert.equal(result.json.ok, true);
-assert.equal(result.json.plans.length, 17);
+assert.equal(result.json.plans.length, 23);
 assert.equal(result.json.saved.totalSeconds, 370);
 assert.equal(result.json.saved.title, '测试计划');
 assert.ok(result.json.saved.id.startsWith('my-'), '新计划应自动生成 my- 开头的 id');
@@ -301,7 +364,7 @@ assert.equal(restored.disabled, false);
 // 删除自己建的
 result = await callPost('/plans', { op: 'delete', id: customId });
 assert.equal(result.status, 200);
-assert.equal(result.json.plans.length, 16);
+assert.equal(result.json.plans.length, 22);
 assert.equal(result.json.plans.some((plan) => plan.id === customId), false);
 
 // ── 删除内置计划（软删除）：从列表和随机池里消失，但可以恢复 ──────────────
@@ -311,7 +374,7 @@ assert.equal(result.json.plans.find((plan) => plan.id === 'chore-wipe').hidden, 
 const savedLibrary = JSON.parse(fs.readFileSync(plansFile, 'utf8'));
 assert.ok(savedLibrary.hidden.includes('chore-wipe'), '删除内置计划要写进 plans.json 的 hidden');
 result = await call('/plans');
-assert.equal(result.json.visibleCount, 15);
+assert.equal(result.json.visibleCount, 21);
 assert.equal(result.json.hiddenCount, 1);
 
 // 已删除的计划不能「试做」，也不能再「停用」
@@ -327,7 +390,7 @@ result = await callPost('/plans', { op: 'restore-hidden', id: 'chore-wipe' });
 assert.equal(result.status, 200);
 assert.equal(result.json.plans.find((plan) => plan.id === 'chore-wipe').hidden, false);
 result = await call('/plans');
-assert.equal(result.json.visibleCount, 16);
+assert.equal(result.json.visibleCount, 22);
 
 // 删除多套后「全部恢复」
 await callPost('/plans', { op: 'delete', id: 'chore-mop' });
@@ -355,7 +418,7 @@ assert.match(result.json.error, /至少要保留 1 套/);
 // 全部恢复内置
 result = await callPost('/plans', { op: 'reset-all' });
 assert.equal(result.status, 200);
-assert.equal(result.json.plans.length, 16);
+assert.equal(result.json.plans.length, 22);
 result = await call('/plans');
 assert.equal(result.json.hiddenCount, 0);
 assert.ok(
@@ -388,5 +451,6 @@ fs.rmSync(statsFile, { force: true });
 fs.rmSync(clockFile, { force: true });
 
 console.log(
-  '✅ host 接线：全部断言通过（含计划增删改 / 内置计划删除与恢复 / 缩放设置 / 夜间提醒 / 统计 / 置顶小窗 / 计时快照）'
+  '✅ host 接线：全部断言通过（含 22 套计划增删改 / 内置计划删除与恢复 / 计划类 planMode ' +
+    '（迁移、非法值、短短短长强制休息跟随计划）/ 缩放设置 / 夜间提醒 / 统计 / 置顶小窗 / 计时快照）'
 );

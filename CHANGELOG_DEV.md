@@ -863,6 +863,63 @@
 
 ---
 
+## 2026-10-30 · 第 22 轮：计划类三模式 + 短短短长 + 弹窗防玻璃化（v1.7.0）
+
+### 做了什么
+
+1. **「你偏爱的计划类」三选一（用户第 3 条）**
+   - 设置 `planMode`：`exercise` 纯运动 / `mixed` 运动+家务 / `short-long` 短短短长；
+   - 默认 `short-long`（用户第 2 条明确要“实行”），老 `settings.json` 没有该字段时按默认迁移；
+   - `short-long` 下休息时长强制跟随计划，固定休息分钟会被忽略（`normalizeSettings` 强制 0）；
+   - 设置页新增三个 radio，切换即时反映到休息时长行，保存后下一轮生效。
+2. **6 套 3～5 分钟「短运动」（用户第 2 条）**
+   - `PLANS` 16→22：前 16 套一个字节没动，末尾追加 `short-neck`(180s)、`short-squat`(210s)、
+     `short-march`(180s)、`short-stretch`(180s)、`short-wall`(240s)、`short-walk`(300s)；
+   - 全部站姿/坐姿、无跳跃、无垫上、无器械；每步有提示，最后拉伸/深呼吸；
+   - `category = 短运动`，设置页浅青蓝徽章；`normalizeUserPlan` 按分类分档校验（短运动 3～5 分钟）。
+3. **短短短长周期（用户第 2 条）**
+   - `clock-core.js`：`shortStreak` 0→1→2→3→0；第 4 次自动休息抽 12～15 分钟长计划；
+   - 自动抽的休息计入周期；长按跳过也推进；设置页「试做」不推进（`cycleCounted=false`）；
+   - 切换进 `short-long` 时周期归零；`clock.json` 快照带 `shortStreak/breakKind/cycleCounted`；
+   - 按模式选池：exercise 只抽运动；mixed 抽运动+家务、不含短运动；池空时兜底不卡住；
+   - `/state` 暴露 `planMode/shortStreak/nextBreakKind/breakKind`，休息卡准备页显示
+     「短短短长 · 第 N/4 次 · 短休息/长休息」，左下角面板显示计划类与下一次。
+4. **弹窗防 Codex UI 玻璃化（用户第 1 条）**
+   - 背景：Codex UI 2.0.5 的玻璃主题对所有 `role="dialog"` 弹窗无差别覆盖成 32% 透明，
+     健康钟休息卡/完成卡/夜间卡/面板被误伤；
+   - 修法：`clockCss()` 给 `.dsh-clock-card`、`.dsh-clock-pop`、`.dsh-clock-night-card`、
+     `.dsh-clock-panel`、`.dsh-clock-backdrop` 的 background/border/border-radius/box-shadow/
+     backdrop-filter/animation 加 `!important`（玻璃规则本身不带 !important，稳定赢）；
+   - 不摘 `role/aria-modal`、不改尺寸布局；`codex-ui-theme` 子插件已重新启用。
+5. **版本 / 测试 / 文档**
+   - 版本 **1.7.0**（`package.json` + `CLIENT_VERSION`）；
+   - `test-plans` 22 套分类时长 + 短运动 normalize；`test-clock` 3 短 1 长 / 跳过 / 试做 /
+     三模式选池 / setPlanMode / restore；`test-host` 老设置迁移 / planMode / `/rest` 抽短运动；
+     `test-resume` 周期字段接续；`npm test` 7 项全绿（新增 `test-client-css`）；
+   - README / DEVELOPMENT / CURRENT_STATE / DECISIONS（ADR-032/033）/ PROJECT / NEXT_ROUND 同步。
+
+### 发现 / 踩坑
+
+- Codex UI 2.0.5 的玻璃规则选择器优先级比 `.dsh-clock-card` 高，靠“后加载”赢不了；
+  但它没用 `!important`，所以健康钟自己的 `!important` 是稳定解，与加载顺序无关。
+- 设置页的“排版模式 / 材质预设 / 微光”三个控件在代码里写死 `enabled: true`，
+  点一下就会重新开玻璃；真正的总开关只在 `localStorage['codex-ui.glass.enabled']`，界面上没有入口。
+- 短短短长如果只让“自然走完”推进周期，跳过会打乱 3 短 1 长的可预期性，所以跳过也推进；
+  「试做」只是看动作，不推进周期（客户端也不显示第 N/4 次，避免误导）。
+- 老用户 `settings.json` 里可能是固定休息 15 分钟；迁移到 short-long 后必须强制 0，
+  否则短休息会被拉成 15 分钟。测试里专门预写了这种老设置。
+
+### 下次从哪继续
+
+- **待用户完全退出 DSH 再打开验收**：设置页三个 radio（默认短短短长）、计划库 22 套/短运动徽章、
+  第一次休息抽 3～5 分钟短运动、准备页显示第 1/4 次、玻璃主题下弹窗不透明、重启后周期接续、
+  切换计划类生效。
+- 验收后本地 commit + tag `v1.7.0`，再按老规矩用 GitHub Desktop Push origin / 补 Release
+  （本机命令行没有 SilverLark257 凭据，SSH 属于 `lidochka77`）。
+- 之后候选：语音音量/语速、中英文、提示音开关/音量、按计划类体验反馈微调。
+
+---
+
 <!--
 以后每轮照这个格式追加：
 
